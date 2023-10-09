@@ -2545,6 +2545,15 @@ await fileContent
         })
     }
 
+    async createChannel(name, desc, pict){
+        await this.mPage.evaluate(({ name, desc, pict}) => {
+            return WPP.newsletter.create(name, {
+                description: desc,
+                picture: pict
+            })
+        }, { name, desc, pict })
+    }
+
 
 }
 

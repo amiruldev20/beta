@@ -34,7 +34,7 @@
   "homepage": "https://github.com/amiruldev20",
   "dependencies": {
     "@pedroslopez/moduleraid": "^5.0.2",
-    "@amiruldev/wajs": "latest",
+    "@amiruldev/wajs": "github:amiruldev20/wajs",
     "axios": "^1.3.6",
     "chalk": "^5.2.0",
     "cheerio": "^1.0.0-rc.12",

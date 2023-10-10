@@ -41,7 +41,7 @@
     "file-type": "^18.2.1",
     "link-preview-js": "^3.0.4",
     "mime-types": "^2.1.35",
-    "moduleraid": "latest",
+    "moduleraid": "github:amiruldev20/moduleRaid",
     "mime": "latest",
     "node-webpmux": "^3.1.0",
     "os": "^0.1.2",

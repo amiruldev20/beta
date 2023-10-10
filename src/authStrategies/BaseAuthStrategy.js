@@ -33,4 +33,4 @@ class BaseAuthStrategy {
     async logout() { }
 }
 
-export default BaseAuthStrategy;
+module.exports = BaseAuthStrategy;

@@ -17,6 +17,7 @@ export const ExposeStore = (moduleRaidStr) => {
     window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
     window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
+    window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
@@ -60,6 +61,7 @@ export const ExposeStore = (moduleRaidStr) => {
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
+    window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.StickerTools = {
@@ -131,7 +133,7 @@ export const ExposeStore = (moduleRaidStr) => {
     
     window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
-    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? 'text' : func(...args); });
+    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
 };
 
 export const LoadUtils = () => {
@@ -963,4 +965,105 @@ export const LoadUtils = () => {
             return [];
         }
     };
+
+    window.WWebJS.getProfilePicThumbToBase64 = async (chatWid) => {
+        const profilePicCollection = await window.Store.ProfilePicThumb.find(chatWid);
+
+        const _readImageAsBase64 = (imageBlob) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = function () {
+                    const base64Image = reader.result;
+                    if (base64Image == null) {
+                        resolve(undefined);
+                    } else {
+                        const base64Data = base64Image.toString().split(',')[1];
+                        resolve(base64Data);
+                    }
+                };
+                reader.readAsDataURL(imageBlob);
+            });
+        };
+
+        if (profilePicCollection?.img) {
+            try {
+                const response = await fetch(profilePicCollection.img);
+                if (response.ok) {
+                    const imageBlob = await response.blob();
+                    if (imageBlob) {
+                        const base64Image = await _readImageAsBase64(imageBlob);
+                        return base64Image;
+                    }
+                }
+            } catch (error) { /* empty */ }
+        }
+        return undefined;
+    };
+
+    window.WWebJS.getAddParticipantsRpcResult = async (groupMetadata, groupWid, participantWid) => {
+        const participantLidArgs = groupMetadata?.isLidAddressingMode
+            ? {
+                phoneNumber: participantWid,
+                lid: window.Store.LidUtils.getCurrentLid(participantWid)
+            }
+            : { phoneNumber: participantWid };
+
+        const iqTo = window.Store.WidToJid.widToGroupJid(groupWid);
+
+        const participantArgs =
+            participantLidArgs.lid
+                ? [{
+                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.lid),
+                    phoneNumberMixinArgs: {
+                        anyPhoneNumber: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
+                    }
+                }]
+                : [{
+                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
+                }];
+
+        let rpcResult, resultArgs;
+        const isOldImpl = window.compareWwebVersions(window.Debug.VERSION, '<=', '2.2335.9');
+        const data = {
+            name: undefined,
+            code: undefined,
+            inviteV4Code: undefined,
+            inviteV4CodeExp: undefined
+        };
+
+        try {
+            rpcResult = await window.Store.GroupParticipants.sendAddParticipantsRPC({ participantArgs, iqTo });
+            resultArgs = isOldImpl
+                ? rpcResult.value.addParticipant[0].addParticipantsParticipantMixins
+                : rpcResult.value.addParticipant[0]
+                    .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
+                    .value
+                    .addParticipantsParticipantMixins;
+        } catch (err) {
+            data.code = 400;
+            return data;
+        }
+
+        if (rpcResult.name === 'AddParticipantsResponseSuccess') {
+            const code = resultArgs?.value.error ?? '200';
+            data.name = resultArgs?.name;
+            data.code = +code;
+            data.inviteV4Code = resultArgs?.value.addRequestCode;
+            data.inviteV4CodeExp = resultArgs?.value.addRequestExpiration?.toString();
+        }
+
+        else if (rpcResult.name === 'AddParticipantsResponseClientError') {
+            const { code: code } = rpcResult.value.errorAddParticipantsClientErrors.value;
+            data.code = +code;
+        }
+
+        else if (rpcResult.name === 'AddParticipantsResponseServerError') {
+            const { code: code } = rpcResult.value.errorServerErrors.value;
+            data.code = +code;
+        }
+
+        return data;
+    };
+
+
 };

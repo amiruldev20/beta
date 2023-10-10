@@ -212,6 +212,15 @@ WPP.conn.setLimit('statusVideoMaxDuration', 120)
 WPP.conn.setLimit('unlimitedPin', true);
 })
 
+const inject = async () => {
+            await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
+                // These error, not as a result of injection directly, but since we use moduleRaid. nothing to do about this but do it again till it works
+                if (error.message.includes('EmojiUtil') || error.message.includes('Prism') || error.message.includes('createOrUpdateReactions')) {
+                    await inject();
+                }
+            });
+        };
+        await inject();
 // new
 const getElementByXpath = (path) => {
 return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -568,7 +577,7 @@ false
 };
 });
 
-await page.evaluate(ExposeStore, moduleRaid.toString());
+
 const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
 /**

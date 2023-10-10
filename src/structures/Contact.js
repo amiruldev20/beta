@@ -9,7 +9,7 @@
 
 'use strict';
 
-import Base from './Base.js';
+const Base = require('./Base');
 
 /**
  * ID that represents a contact
@@ -165,9 +165,10 @@ class Contact extends Base {
 
         await this.client.mPage.evaluate(async (contactId) => {
             const contact = window.Store.Contact.get(contactId);
-            await window.Store.BlockContact.blockContact(contact);
+            await window.Store.BlockContact.blockContact({contact});
         }, this.id._serialized);
 
+        this.isBlocked = true;
         return true;
     }
 
@@ -183,6 +184,7 @@ class Contact extends Base {
             await window.Store.BlockContact.unblockContact(contact);
         }, this.id._serialized);
 
+        this.isBlocked = false;
         return true;
     }
 
@@ -212,4 +214,4 @@ class Contact extends Base {
     
 }
 
-export default Contact;
+module.exports = Contact;

@@ -28,6 +28,7 @@ export const ExposeStore = (moduleRaidStr) => {
         window.mR.findModule("GroupMetadata")[0].default.GroupMetadata;
     window.Store.Invite = window.mR.findModule("resetGroupInviteCode")[0];
     window.Store.InviteInfo = window.mR.findModule("queryGroupInvite")[0];
+    window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Label =
         window.mR.findModule("LabelCollection")[0].LabelCollection;
     window.Store.ContactCollection = window.mR.findModule('ContactCollection')[0].ContactCollection;
@@ -64,11 +65,11 @@ export const ExposeStore = (moduleRaidStr) => {
     )[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) =>
         module.default &&
-        module.default.prototype &&
-        module.default.prototype.isServer &&
-        module.default.prototype.isUser ?
-        module.default :
-        null
+            module.default.prototype &&
+            module.default.prototype.isServer &&
+            module.default.prototype.isUser ?
+            module.default :
+            null
     )[0].default;
     window.Store.Validators = window.mR.findModule("findLinks")[0];
     window.Store.VCard = window.mR.findModule("vcardFromContactModel")[0];
@@ -123,7 +124,8 @@ export const ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule("waNoiseInfo")[0],
         ...window.mR.findModule("waSignalStore")[0].waSignalStore,
     };
-    window.Store.LidManipulations = window.mR.findModule('getCurrentLid')[0];
+
+    window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.StickerTools = {
@@ -131,15 +133,19 @@ export const ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule("addWebpMetadata")[0],
     };
 
-    window.Store.GroupUtils = {
-        ...window.mR.findModule("createGroup")[0],
-        ...window.mR.findModule("setGroupDescription")[0],
-        ...window.mR.findModule("sendExitGroup")[0],
-        ...window.mR.findModule("sendSetPicture")[0],
-        ...window.mR.findModule("sendMessageReport")[0],
-        sendAddParticipantsRPC: window.mR.findModule('sendAddParticipantsRPC')[0].sendAddParticipantsRPC,
-        sendGroupInviteMessage: window.mR.findModule('sendGroupInviteMessage')[0].sendGroupInviteMessage
+    window.Store.GroupParticipants = {
+        ...window.mR.findModule('promoteParticipants')[0],
+        ...window.mR.findModule('sendAddParticipantsRPC')[0]
     };
+    window.Store.GroupInvite = {
+        ...window.mR.findModule('resetGroupInviteCode')[0],
+        ...window.mR.findModule('queryGroupInvite')[0]
+    }
+    window.Store.GroupInviteV4 = {
+        ...window.mR.findModule('queryGroupInviteV4')[0],
+        sendGroupInviteMessage:
+            window.mR.findModule('sendGroupInviteMessage')[0].sendGroupInviteMessage
+    }
 
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = (e) => {
@@ -199,15 +205,41 @@ export const ExposeStore = (moduleRaidStr) => {
         ) => callback(oldFunct, args);
     };
 
-    window.injectToFunction({
-        name: 'typeAttributeFromProtobuf',
-        index: 0,
-        property: 'typeAttributeFromProtobuf'
-    }, (func, args) => {
-        const [proto] = args;
-        return proto.groupInviteMessage ? 'text' : func(...args);
-    });
+    window.compareWwebVersions = (lOperand, operator, rOperand) => {
+        if (!['>', '>=', '<', '<=', '='].includes(operator)) {
+            throw new class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('Invalid comparison operator is provided');
 
+        }
+        if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
+            throw new class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('A non-string WWeb version type is provided');
+        }
+
+        lOperand = lOperand.replace(/-beta$/, '');
+        rOperand = rOperand.replace(/-beta$/, '');
+
+        while (lOperand.length !== rOperand.length) {
+            lOperand.length > rOperand.length
+                ? rOperand = rOperand.concat('0')
+                : lOperand = lOperand.concat('0');
+        }
+
+        lOperand = Number(lOperand.replace(/\./g, ''));
+        rOperand = Number(rOperand.replace(/\./g, ''));
+
+        return (
+            operator === '>' ? lOperand > rOperand :
+                operator === '>=' ? lOperand >= rOperand :
+                    operator === '<' ? lOperand < rOperand :
+                        operator === '<=' ? lOperand <= rOperand :
+                            operator === '=' ? lOperand === rOperand :
+                                false
+        );
+    };
+    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
     // Find Template models
     window.Store.TemplateButtonModel = window.findProxyModel(
         "TemplateButtonModel"
@@ -223,10 +255,10 @@ export const ExposeStore = (moduleRaidStr) => {
 
     // Modify functions
     window.injectToFunction({
-            index: 0,
-            name: "createMsgProtobuf",
-            property: "createMsgProtobuf",
-        },
+        index: 0,
+        name: "createMsgProtobuf",
+        property: "createMsgProtobuf",
+    },
         (func, args) => {
             const [message] = args;
             const proto = func(...args);
@@ -295,8 +327,8 @@ export const ExposeStore = (moduleRaidStr) => {
                         ) {
                             hydratedTemplate.hydratedContentText =
                                 message[found].name && message[found].address ?
-                                `${message[found].name}\n${message[found].address}` :
-                                message[found].name || message[found].address || "";
+                                    `${message[found].name}\n${message[found].address}` :
+                                    message[found].name || message[found].address || "";
                         }
                     }
 
@@ -318,10 +350,10 @@ export const ExposeStore = (moduleRaidStr) => {
 
     setTimeout(() => {
         window.injectToFunction({
-                index: 0,
-                name: "createMsgProtobuf",
-                property: "createMsgProtobuf",
-            },
+            index: 0,
+            name: "createMsgProtobuf",
+            property: "createMsgProtobuf",
+        },
             (func, args) => {
                 const proto = func(...args);
                 if (proto.templateMessage) {
@@ -358,10 +390,10 @@ export const ExposeStore = (moduleRaidStr) => {
     }, 100);
 
     window.injectToFunction({
-            index: 0,
-            name: "typeAttributeFromProtobuf",
-            property: "typeAttributeFromProtobuf",
-        },
+        index: 0,
+        name: "typeAttributeFromProtobuf",
+        property: "typeAttributeFromProtobuf",
+    },
         function callback(func, args) {
             const [proto] = args;
 
@@ -414,10 +446,10 @@ export const ExposeStore = (moduleRaidStr) => {
     );
 
     window.injectToFunction({
-            index: 0,
-            name: "mediaTypeFromProtobuf",
-            property: "mediaTypeFromProtobuf",
-        },
+        index: 0,
+        name: "mediaTypeFromProtobuf",
+        property: "mediaTypeFromProtobuf",
+    },
         (func, args) => {
             const [proto] = args;
             if (proto.templateMessage?.hydratedTemplate) {
@@ -428,10 +460,10 @@ export const ExposeStore = (moduleRaidStr) => {
     );
 
     window.injectToFunction({
-            index: 0,
-            name: "encodeMaybeMediaType",
-            property: "encodeMaybeMediaType",
-        },
+        index: 0,
+        name: "encodeMaybeMediaType",
+        property: "encodeMaybeMediaType",
+    },
         (func, args) => {
             const [type] = args;
             if (type === "button") {
@@ -442,10 +474,10 @@ export const ExposeStore = (moduleRaidStr) => {
     );
 
     window.injectToFunction({
-            index: 0,
-            name: "encodeStanza",
-            property: "encodeStanza",
-        },
+        index: 0,
+        name: "encodeStanza",
+        property: "encodeStanza",
+    },
         (func, args) => {
             if (args[0].tag == "message") {
                 if (window.WWebJS.pendingBypass.find((a) => a.id == args[0].attrs.id)) {
@@ -487,10 +519,10 @@ export const ExposeStore = (moduleRaidStr) => {
     );
 
     window.injectToFunction({
-            index: 0,
-            name: "createFanoutMsgStanza",
-            property: "createFanoutMsgStanza",
-        },
+        index: 0,
+        name: "createFanoutMsgStanza",
+        property: "createFanoutMsgStanza",
+    },
         async (func, args) => {
             const [, proto] = args;
 
@@ -520,8 +552,8 @@ export const ExposeStore = (moduleRaidStr) => {
             if (!bizNode) {
                 bizNode = window.Store.WebSocket.smax(
                     "biz", {
-                        native_flow_name: "wa_payment_learn_more"
-                    },
+                    native_flow_name: "wa_payment_learn_more"
+                },
                     null
                 );
                 content.push(bizNode);
@@ -637,8 +669,8 @@ export const LoadUtils = () => {
             if (typeof options.quoted === "object")
                 quotedMsg = window.Store.Msg.get(
                     options.quoted.id ?
-                    options.quoted.id._serialized :
-                    options.quoted._serialized
+                        options.quoted.id._serialized :
+                        options.quoted._serialized
                 );
 
             quotedMsg = quotedMsg.msgContextInfo(chat.id);
@@ -740,10 +772,10 @@ export const LoadUtils = () => {
         returnObject.replyButtons.add(
             returnObject.dynamicReplyButtons.map(
                 (button) =>
-                new window.Store.ReplyButtonModel({
-                    id: button.buttonId,
-                    displayText: button.buttonText?.displayText || undefined,
-                })
+                    new window.Store.ReplyButtonModel({
+                        id: button.buttonId,
+                        displayText: button.buttonText?.displayText || undefined,
+                    })
             )
         );
 
@@ -1351,10 +1383,10 @@ export const LoadUtils = () => {
         let userId = window.Store.User.getMaybeMeUser().user + "@s.whatsapp.net";
         const stanza = window.Store.SocketWap.wap(
             "call", {
-                id: window.Store.SocketWap.generateId(),
-                from: window.Store.SocketWap.USER_JID(userId),
-                to: window.Store.SocketWap.USER_JID(peerJid),
-            },
+            id: window.Store.SocketWap.generateId(),
+            from: window.Store.SocketWap.USER_JID(userId),
+            to: window.Store.SocketWap.USER_JID(peerJid),
+        },
             [
                 window.Store.SocketWap.wap("reject", {
                     "call-id": id,
@@ -1386,11 +1418,11 @@ export const LoadUtils = () => {
             delete options.mimetype;
 
         options = Object.assign({
-                size: 720,
-                mimetype: media.mimetype,
-                quality: 0.75,
-                asDataUrl: false
-            },
+            size: 720,
+            mimetype: media.mimetype,
+            quality: 0.75,
+            asDataUrl: false
+        },
             options
         );
 
@@ -1425,28 +1457,28 @@ export const LoadUtils = () => {
     window.WWebJS.setPicture = async (chatid, media, type = "normal") => {
         const thumbnail =
             type === "long" ?
-            await window.WWebJS.cropAndResizeImage(media, {
-                asDataUrl: true,
-                mimetype: "image/jpeg",
-                size: 120,
-            }) :
-            await window.WWebJS.cropAndResizeImage(media, {
-                asDataUrl: true,
-                mimetype: "image/jpeg",
-                size: 96,
-            });
+                await window.WWebJS.cropAndResizeImage(media, {
+                    asDataUrl: true,
+                    mimetype: "image/jpeg",
+                    size: 120,
+                }) :
+                await window.WWebJS.cropAndResizeImage(media, {
+                    asDataUrl: true,
+                    mimetype: "image/jpeg",
+                    size: 96,
+                });
         const profilePic =
             type === "long" ?
-            await window.WWebJS.cropAndResizeImage(media, {
-                asDataUrl: true,
-                mimetype: "image/jpeg",
-                size: 720,
-            }) :
-            await window.WWebJS.cropAndResizeImage(media, {
-                asDataUrl: true,
-                mimetype: "image/jpeg",
-                size: 640,
-            });
+                await window.WWebJS.cropAndResizeImage(media, {
+                    asDataUrl: true,
+                    mimetype: "image/jpeg",
+                    size: 720,
+                }) :
+                await window.WWebJS.cropAndResizeImage(media, {
+                    asDataUrl: true,
+                    mimetype: "image/jpeg",
+                    size: 640,
+                });
 
         const chatWid = window.Store.WidFactory.createWid(chatid);
         try {
@@ -1517,12 +1549,12 @@ export const LoadUtils = () => {
     window.WWebJS.downloadFile = async (url) => {
         return new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
-            xhr.onload = function() {
+            xhr.onload = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
                         let reader = new FileReader();
                         reader.readAsDataURL(xhr.response);
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             resolve(reader.result.substr(reader.result.indexOf(",") + 1));
                         };
                     } else {
@@ -1547,13 +1579,13 @@ export const LoadUtils = () => {
         return chat.presence.attributes.isOnline;
     };
 
-    window.WWebJS.getProfilePicThumbBase64 = async (chatWid) => {
-        const profilePicCollection = window.Store.ProfilePicThumb.get(chatWid);
+    window.WWebJS.getProfilePicThumbToBase64 = async (chatWid) => {
+        const profilePicCollection = await window.Store.ProfilePicThumb.find(chatWid);
 
         const _readImageAsBase64 = (imageBlob) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
-                reader.onloadend = function() {
+                reader.onloadend = function () {
                     const base64Image = reader.result;
                     if (base64Image == null) {
                         resolve(undefined);
@@ -1576,83 +1608,75 @@ export const LoadUtils = () => {
                         return base64Image;
                     }
                 }
-            } catch (error) {
-                /* empty */ }
+            } catch (error) { /* empty */ }
         }
         return undefined;
     };
 
-    window.WWebJS.getAddParticipantsRpcResult = async (chatMetadata, chatWid, participantWid) => {
-        const participantLidArgs = chatMetadata?.isLidAddressingMode ?
-            {
+    window.WWebJS.getAddParticipantsRpcResult = async (groupMetadata, groupWid, participantWid) => {
+        const participantLidArgs = groupMetadata?.isLidAddressingMode
+            ? {
                 phoneNumber: participantWid,
-                lid: window.Store.LidManipulations.getCurrentLid(participantWid)
-            } :
-            {
-                phoneNumber: participantWid
-            };
+                lid: window.Store.LidUtils.getCurrentLid(participantWid)
+            }
+            : { phoneNumber: participantWid };
 
-        const iqTo = window.Store.WidToJid.widToGroupJid(chatWid);
+        const iqTo = window.Store.WidToJid.widToGroupJid(groupWid);
 
         const participantArgs =
-            participantLidArgs.lid ?
-            [{
-                participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.lid),
-                phoneNumberMixinArgs: {
-                    anyPhoneNumber: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-                }
-            }] :
-            [{
-                participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-            }];
+            participantLidArgs.lid
+                ? [{
+                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.lid),
+                    phoneNumberMixinArgs: {
+                        anyPhoneNumber: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
+                    }
+                }]
+                : [{
+                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
+                }];
 
-        let result, participant;
+        let rpcResult, resultArgs;
+        const isOldImpl = window.compareWwebVersions(window.Debug.VERSION, '<=', '2.2335.9');
         const data = {
             name: undefined,
             code: undefined,
-            message: undefined,
             inviteV4Code: undefined,
             inviteV4CodeExp: undefined
         };
 
         try {
-            result = await window.Store.GroupUtils.sendAddParticipantsRPC({
-                participantArgs,
-                iqTo
-            });
-            [participant] = result.value.addParticipant;
+            rpcResult = await window.Store.GroupParticipants.sendAddParticipantsRPC({ participantArgs, iqTo });
+            resultArgs = isOldImpl
+                ? rpcResult.value.addParticipant[0].addParticipantsParticipantMixins
+                : rpcResult.value.addParticipant[0]
+                    .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
+                    .value
+                    .addParticipantsParticipantMixins;
         } catch (err) {
-            data.code = -1;
-            data.message = 'SmaxParsingFailure: failed to parse the response of <AddParticipants>';
+            data.code = 400;
             return data;
         }
 
-        if (result.name === 'AddParticipantsResponseSuccess') {
-            const participantMixins = participant.addParticipantsParticipantMixins;
-            const code = participantMixins?.value.error ?? '200';
-            data.name = participantMixins?.name;
+        if (rpcResult.name === 'AddParticipantsResponseSuccess') {
+            const code = resultArgs?.value.error ?? '200';
+            data.name = resultArgs?.name;
             data.code = +code;
-            data.inviteV4Code = participantMixins?.value.addRequestCode;
-            data.inviteV4CodeExp = participantMixins?.value.addRequestExpiration?.toString();
-        } else if (result.name === 'AddParticipantsResponseClientError') {
-            const {
-                code: code,
-                text: message
-            } = result.value.errorAddParticipantsClientErrors.value;
+            data.inviteV4Code = resultArgs?.value.addRequestCode;
+            data.inviteV4CodeExp = resultArgs?.value.addRequestExpiration?.toString();
+        }
+
+        else if (rpcResult.name === 'AddParticipantsResponseClientError') {
+            const { code: code } = rpcResult.value.errorAddParticipantsClientErrors.value;
             data.code = +code;
-            data.message = message;
-        } else if (result.name === 'AddParticipantsResponseServerError') {
-            const {
-                code: code,
-                text: message
-            } = result.value.errorServerErrors.value;
+        }
+
+        else if (rpcResult.name === 'AddParticipantsResponseServerError') {
+            const { code: code } = rpcResult.value.errorServerErrors.value;
             data.code = +code;
-            data.message = message;
         }
 
         return data;
     };
-
     window.WWebJS.getUploadLimits = async (messageType) => {
         const uploadLimit = window.Store.UploadLimits(messageType);
         return uploadLimit;

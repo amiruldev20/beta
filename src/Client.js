@@ -10,7 +10,7 @@
 
 import EventEmitter from "events";
 import playwright from "playwright-chromium";
-import moduleRaid from "moduleRaid/src/moduleraid.js";
+import moduleRaid from "moduleraid/src/moduleraid.ts";
 import {
 createRequire
 } from "module";

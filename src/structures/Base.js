@@ -28,4 +28,4 @@ class Base {
     _patch(data) { return data; }
 }
 
-export default Base
+module.exports = Base;

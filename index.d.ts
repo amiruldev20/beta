@@ -515,6 +515,8 @@ declare namespace WAWebJS {
         playwright?: playwright.LaunchOptions & playwright.ConnectOptions;
         /** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
         authStrategy?: AuthStrategy;
+        /** The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved. */
+        webVersion?: string,
         /** How many times should the qrcode be refreshed before giving up
          * @default 0 (disabled) */
         qrMaxRetries?: number;

@@ -6,57 +6,26 @@
  * wa: 085157489446
  * ig: amirul.dev
  */
-"use strict";
+'use strict';
 
-import EventEmitter from "events";
-import playwright from "playwright-chromium";
-import moduleRaid from "@amiruldev/moduleraid/moduleraid.js";
-import {
-createRequire
-} from "module";
-import chalk from "chalk";
-import {
-promises as fs
-} from "fs";
-import {
-exec
-} from "child_process";
-import Fs from "fs";
-import path from "path";
+const fs = require('fs')
+const path = require('path')
 
-import Util from "./util/Util.js";
-import InterfaceController from "./util/InterfaceController.js";
-import {
-WhatsWebURL,
-DefaultOptions,
-Events,
-WAState,
-} from "./util/Constants.js";
-import {
-ExposeStore,
-LoadUtils
-} from "./util/Injected.js";
-import ChatFactory from "./factories/ChatFactory.js";
-import ContactFactory from "./factories/ContactFactory.js";
-import {
-PollVote,
-ClientInfo,
-Message,
-MessageMedia,
-Contact,
-Location,
-GroupNotification,
-Label,
-Call,
-Buttons,
-List,
-Reaction,
-LinkingMethod
-} from "./structures/index.js";
-import LegacySessionAuth from "./authStrategies/LegacySessionAuth.js";
-import NoAuth from "./authStrategies/NoAuth.js";
+const EventEmitter = require('events');
+const playwright = require('puppeteer');
+const moduleRaid = require('@amiruldev/moduleraid/moduleraid');
 
-const require = createRequire(import.meta.url);
+const Util = require('./util/Util');
+const InterfaceController = require('./util/InterfaceController');
+const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
+const { ExposeStore, LoadUtils } = require('./util/Injected');
+const ChatFactory = require('./factories/ChatFactory');
+const ContactFactory = require('./factories/ContactFactory');
+const WebCacheFactory = require('./webCache/WebCacheFactory');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat, PollVote } = require('./structures');
+const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
+const NoAuth = require('./authStrategies/NoAuth');
+const LinkingMethod = require('./authStrategies/LingkingMethod')
 
 /**
  * Starting point for interacting with the WhatsApp Web API

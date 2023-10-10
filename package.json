@@ -1,10 +1,9 @@
 {
   "name": "mywajs",
-  "version": "2.0.6",
+  "version": "2.0.8",
   "description": "remake wwebjs using playwright and wajs",
   "main": "./index.js",
   "typings": "./index.d.ts",
-  "type": "module",
   "scripts": {
     "test": "mocha tests --recursive --timeout 5000",
     "test-single": "mocha",

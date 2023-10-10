@@ -68,7 +68,7 @@ class GroupChat extends Chat {
      * @returns {Promise<Object>}
      */
     async addParticipants(participantIds, options = {}) {
-        return await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
+        return await this.client.mPage.evaluate(async (groupId, participantIds, options) => {
             const { sleep = [250, 500], autoSendInviteV4 = true, comment = '' } = options;
             const participantData = {};
 

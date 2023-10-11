@@ -23,7 +23,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
-    window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
@@ -60,9 +59,12 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     
     /* eslint-disable no-undef, no-cond-assign */
+    window.Store.sendQueryMsgInfo = m = window.mR.findModule('sendQueryMsgInfo')[0] ? m.sendQueryMsgInfo : window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
-    if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
+    /* eslint-enable no-undef, no-cond-assign */
+    (!(chat = window.Store.Chat).findImpl) && (chat.findImpl = chat._find);
+
     /* eslint-enable no-undef, no-cond-assign */
 
     window.Store.StickerTools = {

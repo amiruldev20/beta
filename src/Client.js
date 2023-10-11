@@ -2520,4 +2520,4 @@ picture: pict
 
 }
 
-export default Client;
+exports.Client;

@@ -33,10 +33,10 @@ module.exports = {
     PollVote: require('./src/structures/PollVote'),
 
     // Auth Strategies
+    LinkingMethod: require('./src/LinkingMethod'),
     NoAuth: require('./src/authStrategies/NoAuth'),
     LocalAuth: require('./src/authStrategies/LocalAuth'),
     RemoteAuth: require('./src/authStrategies/RemoteAuth'),
     LegacySessionAuth: require('./src/authStrategies/LegacySessionAuth'),
-    LinkingMethod: require('./src/authStrategies/LinkingMethod'),
     ...Constants
 };

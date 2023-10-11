@@ -124,7 +124,7 @@ if (!browserArgs.find((arg) => arg.includes("--user-agent"))) {
 browserArgs.push(`--user-agent=${this.options.userAgent}`);
 }
 
-browser = await playwright.chromium.launchPersistentContext('@mywa_auth', {
+browser = await playwright.chromium.launchPersistentContext('.mywa_auth', {
 ...playwrightOpts,
 args: browserArgs,
 timeout: 0,

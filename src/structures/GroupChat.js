@@ -67,18 +67,113 @@ class GroupChat extends Chat {
      * @param {Array<string>} participantIds 
      * @returns {Promise<Object>}
      */
-    async addParticipants(participantIds) {
-        return await this.client.mPage.evaluate(async (chatId, participantIds) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-            const participants = await Promise.all(participantIds.map(async p => {
-                const wid = window.Store.WidFactory.createWid(p);
-                return await window.Store.Contact.get(wid);
-            }));
-            await window.Store.GroupParticipants.addParticipants(chat, participants);
-            return { status: 200 };
-        }, this.id._serialized, participantIds);
-    }
+        async addParticipants(participantIds, options = {}) { 
+         return await this.client.mPage.evaluate(async ({groupId, participantIds, options}) => { 
+             const { sleep = [250, 500], autoSendInviteV4 = true, comment = '' } = options; 
+             const participantData = {}; 
+  
+             !Array.isArray(participantIds) && (participantIds = [participantIds]); 
+             const groupWid = window.Store.WidFactory.createWid(groupId); 
+             const group = await window.Store.Chat.find(groupWid); 
+             const participantWids = participantIds.map((p) => window.Store.WidFactory.createWid(p)); 
+  
+             const errorCodes = { 
+                 default: 'An unknown error occupied while adding a participant', 
+                 isGroupEmpty: 'AddParticipantsError: The participant can\'t be added to an empty group', 
+                 iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add a participant to a group', 
+                 200: 'The participant was added successfully', 
+                 403: 'The participant can be added by sending private invitation only', 
+                 404: 'The phone number is not registered on WhatsApp', 
+                 408: 'You cannot add this participant because they recently left the group', 
+                 409: 'The participant is already a group member', 
+                 417: 'The participant can\'t be added to the community. You can invite them privately to join this group through its invite link', 
+                 419: 'The participant can\'t be added because the group is full' 
+             }; 
+  
+             await window.Store.GroupMetadata.queryAndUpdate(groupWid); 
+             const groupMetadata = group.groupMetadata; 
+             const groupParticipants = groupMetadata?.participants; 
+  
+             if (!groupParticipants) { 
+                 return errorCodes.isGroupEmpty; 
+             } 
+  
+             if (!group.iAmAdmin()) { 
+                 return errorCodes.iAmNotAdmin; 
+             } 
+  
+             const _getSleepTime = (sleep) => { 
+                 if (!Array.isArray(sleep) || sleep.length === 2 && sleep[0] === sleep[1]) { 
+                     return sleep; 
+                 } 
+                 if (sleep.length === 1) { 
+                     return sleep[0]; 
+                 } 
+                 (sleep[1] - sleep[0]) < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100); 
+                 return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0]; 
+             }; 
+  
+             for (const pWid of participantWids) { 
+                 const pId = pWid._serialized; 
+  
+                 participantData[pId] = { 
+                     code: undefined, 
+                     message: undefined, 
+                     isInviteV4Sent: false 
+                 }; 
+  
+                 if (groupParticipants.some(p => p.id._serialized === pId)) { 
+                     participantData[pId].code = 409; 
+                     participantData[pId].message = errorCodes[409]; 
+                     continue; 
+                 } 
+  
+                 if (!(await window.Store.QueryExist(pWid))?.wid) { 
+                     participantData[pId].code = 404; 
+                     participantData[pId].message = errorCodes[404]; 
+                     continue; 
+                 } 
+  
+                 const rpcResult = 
+                     await window.WWebJS.getAddParticipantsRpcResult(groupMetadata, groupWid, pWid); 
+                 const { code: rpcResultCode } = rpcResult; 
+  
+                 participantData[pId].code = rpcResultCode; 
+                 participantData[pId].message = 
+                     errorCodes[rpcResultCode] || errorCodes.default; 
+  
+                 if (autoSendInviteV4 && rpcResultCode === 403) { 
+                     let userChat, isInviteV4Sent = false; 
+                     window.Store.ContactCollection.gadd(pWid, { silent: true }); 
+  
+                     if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' && 
+                         (userChat = await window.Store.Chat.find(pWid))) { 
+                         const groupName = group.formattedTitle || group.name; 
+                         const res = await window.Store.GroupInviteV4.sendGroupInviteMessage( 
+                             userChat, 
+                             group.id._serialized, 
+                             groupName, 
+                             rpcResult.inviteV4Code, 
+                             rpcResult.inviteV4CodeExp, 
+                             comment, 
+                             await window.WWebJS.getProfilePicThumbToBase64(groupWid) 
+                         ); 
+                         isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6') 
+                             ? res === 'OK' 
+                             : res.messageSendResult === 'OK'; 
+                     } 
+  
+                     participantData[pId].isInviteV4Sent = isInviteV4Sent; 
+                 } 
+  
+                 sleep && 
+                     participantWids.length > 1 && 
+                     participantWids.indexOf(pWid) !== participantWids.length - 1 && 
+                     (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep)))); 
+             } 
+  
+             return participantData; 
+         }, { groupId: this.id._serialized, participantIds, options });
 
     /**
      * Removes a list of participants by ID to the group

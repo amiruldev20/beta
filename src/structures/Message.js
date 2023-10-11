@@ -374,12 +374,12 @@ class Message extends Base {
      * @return {Promise}
      */
     async react(reaction){
-        await this.client.mPage.evaluate(async (messageId, reaction) => {
+        await this.client.mPage.evaluate(async ({messageId, reaction}) => {
             if (!messageId) { return undefined; }
             
             const msg = await window.Store.Msg.get(messageId);
             await window.Store.sendReactionToMsg(msg, reaction);
-        }, this.id._serialized, reaction);
+        }, { messageId: this.id._serialized, reaction });
     }
 
     /**

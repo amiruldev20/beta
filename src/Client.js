@@ -9,6 +9,7 @@
 'use strict';
 
 const fs = require('fs')
+const Fs = require('fs')
 const path = require('path')
 
 const EventEmitter = require('events');

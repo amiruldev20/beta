@@ -330,14 +330,6 @@ class Message extends Base {
     }
 
     /**
-     * Returns the Contacts mentioned in this message
-     * @returns {Promise<Array<Contact>>}
-     */
-    async getMentions() {
-        return await Promise.all(this._data.mentionedIds.map(async m => await this.client.getContactById(m)));
-    }
-
-    /**
      * Returns the quoted message, if any
      * @returns {Promise<Message>}
      */
@@ -370,7 +362,7 @@ class Message extends Base {
 
         options = {
             ...options,
-            quotedMessageId: this.id._serialized
+            quoted: this.id._serialized
         };
 
         return this.client.sendMessage(chatId, content, options);

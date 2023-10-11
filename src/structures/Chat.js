@@ -130,7 +130,7 @@ class Chat extends Base {
   async delete() {
     return this.client.mPage.evaluate((chatId) => {
       return window.WWebJS.sendDeleteChat(chatId);
-    }, { chatId: this.id._serialized });
+    }, this.id._serialized);
   }
 
   /**

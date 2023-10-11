@@ -30,7 +30,7 @@ module.exports = {
     ProductMetadata: require('./src/structures/ProductMetadata'),
     List: require('./src/structures/List'),
     Buttons: require('./src/structures/Buttons'),
-    PollVote: require('./src/structures/Pollvote'),
+    PollVote: require('./src/structures/PollVote'),
 
     // Auth Strategies
     NoAuth: require('./src/authStrategies/NoAuth'),

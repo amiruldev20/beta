@@ -1,7 +1,6 @@
 'use strict';
 
-// Exposes the internal Store to the WhatsApp Web client
-export const ExposeStore = (moduleRaidStr) => {
+exports.ExposeStore = (moduleRaidStr) => {
     eval('var moduleRaid = ' + moduleRaidStr);
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
@@ -136,7 +135,7 @@ export const ExposeStore = (moduleRaidStr) => {
     window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
 };
 
-export const LoadUtils = () => {
+exports.LoadUtils = () => {
     window.WWebJS = {
         ...WPP
     };
@@ -506,7 +505,7 @@ export const LoadUtils = () => {
         return msg;
     };
 
-  
+
     window.WWebJS.getChatModel = async chat => {
 
         let res = chat.serialize();

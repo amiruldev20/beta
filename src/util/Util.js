@@ -7,29 +7,21 @@
  * ig: amirul.dev
  */
 'use strict';
+const path = require('path');
+const Crypto = require('crypto');
+const { tmpdir } = require('os');
+const ffmpeg = require('fluent-ffmpeg');
+const webp = require('node-webpmux');
+const fs = require('fs').promises;
 
-import path from 'path';
-import Crypto from "crypto";
-import {
-    tmpdir
-} from 'os';
-import ffmpeg from 'fluent-ffmpeg';
-import webp from 'node-webpmux';
-import {
-    Readable
-} from 'stream'
-import fs from 'fs/promises';
-import Fs from 'fs';
-import axios from 'axios';
-import BodyForm from "form-data";
-import {
-    fileTypeFromBuffer
-} from "file-type"
-import mimes from "mime-types"
+const { Readable } = require('stream')
+const Fs = require('fs')
+const axios = require('axios')
+const BodyForm = require('form-data')
+const { fileTypeFromBuffer } = require('file-type')
+const mimes = require('mime-types')
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
-
-
 /**
  * Utility methods
  */
@@ -315,7 +307,7 @@ class Util {
                         ext: mimes.extension(mime)
                     });
                 } else if (/^data:.*?\/.*?;base64,/i.test(string)) {
-                    let data = Buffer.from(string.split`,` [1], "base64")
+                    let data = Buffer.from(string.split`,`[1], "base64")
                     let size = Buffer.byteLength(data)
                     resolve({
                         data,
@@ -385,9 +377,11 @@ class Util {
         try {
             options = !!options.headers ? options.headers : {}
             let filename = null;
-            let data = (await this.fetchBuffer(PATH, { headers: {
-                referer: 'https://y2mate.com'
-                }}))
+            let data = (await this.fetchBuffer(PATH, {
+                headers: {
+                    referer: 'https://y2mate.com'
+                }
+            }))
 
             if (data?.data && save) {
                 filename = `../../temp/${Date.now()}.${data.ext}`
@@ -401,29 +395,29 @@ class Util {
             throw e
         }
     }
-    
+
     /* upload media */
     static upload(buffer, exts) {
-		return new Promise(async (resolve, reject) => {
-			const { ext, data: buffers } = await this.getFile(buffer)
-			const form = new BodyForm();
-			form.append("files[]", buffers, this.getRandom(exts || ext))
-			await axios({
-				url: "https://pomf.lain.la/upload.php",
-				method: "POST",
-				headers: {
-					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
-					...form.getHeaders()
-				},
-				data: form
-			}).then((data) => {
-				resolve(data.data.files[0])
-			}).catch((err) => resolve(err))
-		})
-	}
+        return new Promise(async (resolve, reject) => {
+            const { ext, data: buffers } = await this.getFile(buffer)
+            const form = new BodyForm();
+            form.append("files[]", buffers, this.getRandom(exts || ext))
+            await axios({
+                url: "https://pomf.lain.la/upload.php",
+                method: "POST",
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+                    ...form.getHeaders()
+                },
+                data: form
+            }).then((data) => {
+                resolve(data.data.files[0])
+            }).catch((err) => resolve(err))
+        })
+    }
 
 
 
 }
 
-export default Util;
+exports.Util;

@@ -420,4 +420,4 @@ class Util {
 
 }
 
-exports.Util;
+module.exports = Util;

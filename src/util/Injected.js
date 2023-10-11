@@ -18,6 +18,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
+    window.Store.ContactCollection = window.mR.findModule('ContactCollection')[0].ContactCollection; 
     window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];

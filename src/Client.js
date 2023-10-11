@@ -12,7 +12,7 @@ const fs = require('fs')
 const path = require('path')
 
 const EventEmitter = require('events');
-const playwright = require('puppeteer');
+const playwright = require('playwright-chromium');
 const moduleRaid = require('@amiruldev/moduleraid/moduleraid');
 
 const Util = require('./util/Util');

@@ -9,8 +9,8 @@
 
 'use strict';
 
-import Base from './Base.js';
-import ProductMetadata from './ProductMetadata.js';
+const Base = require('./Base');
+const ProductMetadata = require('./ProductMetadata');
 
 /**
  * Represents a Product on WhatsAppBusiness
@@ -61,7 +61,7 @@ class Product extends Base {
 
     async getData() {
         if (this.data === null) {
-            let result = await this.client.mPage.evaluate((productId) => {
+            let result = await this.client.pupPage.evaluate((productId) => {
                 return window.WWebJS.getProductMetadata(productId);
             }, this.id);
             if (!result) {
@@ -74,4 +74,4 @@ class Product extends Base {
     }
 }
 
-export default Product;
+module.exports = Product;

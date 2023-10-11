@@ -9,7 +9,7 @@
 
 'use strict';
 
-import Base from './Base.js';
+const Base = require('./Base');
 
 /**
  * Represents a Reaction on WhatsApp
@@ -75,4 +75,4 @@ class Reaction extends Base {
     
 }
 
-export default Reaction;
+module.exports = Reaction;

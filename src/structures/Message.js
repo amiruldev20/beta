@@ -334,10 +334,7 @@ class Message extends Base {
      * @returns {Promise<Array<Contact>>}
      */
     async getMentions() {
-        console.log(this)
-        /*
-        return await Promise.all(data.mentionedJidList.map(async m => await this.client.getContactById(m)));
-        */
+        return await Promise.all(this.mentionedIds.map(async m => await this.client.getContactById(m)));
     }
 
     /**

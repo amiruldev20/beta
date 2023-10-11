@@ -24,7 +24,7 @@ const ContactFactory = require('./factories/ContactFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat, PollVote } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
-const LinkingMethod = require('./authStrategies/LingkingMethod')
+const LinkingMethod = require('./authStrategies/LinkingMethod')
 
 /**
  * Starting point for interacting with the WhatsApp Web API

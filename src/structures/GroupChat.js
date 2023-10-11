@@ -174,7 +174,7 @@ class GroupChat extends Chat {
   
              return participantData; 
          }, { groupId: this.id._serialized, participantIds, options });
-
+}
     /**
      * Removes a list of participants by ID to the group
      * @param {Array<string>} participantIds 

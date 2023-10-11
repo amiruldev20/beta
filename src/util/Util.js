@@ -18,7 +18,7 @@ const { Readable } = require('stream')
 const Fs = require('fs')
 const axios = require('axios')
 const BodyForm = require('form-data')
-const { fileTypeFromBuffer } = require('file-type')
+const fileTypeFromBuffer = require('file-type')
 const mimes = require('mime-types')
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);

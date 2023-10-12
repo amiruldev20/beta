@@ -981,7 +981,7 @@ return res;
  * @param {*} name 
  * @returns 
  */
-async changeMyname(name) {
+async changeName(name) {
 try {
 await this.mPage.evaluate((name) => {
 return window.WWebJS.profile.setMyProfileName(name);
@@ -1299,6 +1299,13 @@ extension(message?.mime || message._data.mimetype || message.mimetype)
 );
 const buffer = await this.downloadMediaMessage(message);
 const filePath = join(__dirname, "..", "..", "temp", filename);
+const folderPath = "../../temp";
+
+if (!fs.existsSync(folderPath)) {
+fs.mkdirSync(folderPath);
+console.log('Folder "tmp" created!!');
+} else {
+}
 await fs.writeFile(filePath, buffer);
 
 return filePath;

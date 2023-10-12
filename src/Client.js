@@ -1289,7 +1289,7 @@ return Util.base64ToBuffer(result?.data);
  * @param {*} filename 
  * @returns 
  */
-async downloadAndSaveMediaMessage(message, filename) {
+async downloadAndSaveMedia(message, filename) {
 if (!message.isMedia) return;
 
 filename = filename ?
@@ -2519,6 +2519,10 @@ picture: pict
 }, { name, desc, pict })
 }
 
+/* New Function */
+async parseMention(text) {
+    return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(v => v[1] + '@c.us') || []
+    }
 
 }
 

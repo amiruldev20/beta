@@ -206,7 +206,7 @@ exports.LoadUtils = () => {
         let locationOptions = {};
         if (options.location) {
             let { latitude, longitude, description, url } = options.location;
-            url = window.Store.Validators.findLink(url)?.href;
+            url = window.Store.Validators.findLink(url) ?.href;
             url && !description && (description = url);
             locationOptions = {
                 type: 'location',
@@ -805,12 +805,12 @@ exports.LoadUtils = () => {
             from: window.Store.SocketWap.USER_JID(userId),
             to: window.Store.SocketWap.USER_JID(peerJid),
         }, [
-            window.Store.SocketWap.wap('reject', {
-                'call-id': id,
-                'call-creator': window.Store.SocketWap.USER_JID(peerJid),
-                count: '0',
-            })
-        ]);
+                window.Store.SocketWap.wap('reject', {
+                    'call-id': id,
+                    'call-creator': window.Store.SocketWap.USER_JID(peerJid),
+                    count: '0',
+                })
+            ]);
         await window.Store.Socket.deprecatedCastStanza(stanza);
     };
 
@@ -902,7 +902,7 @@ exports.LoadUtils = () => {
             });
         };
 
-        if (profilePicCollection?.img) {
+        if (profilePicCollection ?.img) {
             try {
                 const response = await fetch(profilePicCollection.img);
                 if (response.ok) {
@@ -918,7 +918,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getAddParticipantsRpcResult = async (groupMetadata, groupWid, participantWid) => {
-        const participantLidArgs = groupMetadata?.isLidAddressingMode
+        const participantLidArgs = groupMetadata ?.isLidAddressingMode
             ? {
                 phoneNumber: participantWid,
                 lid: window.Store.LidUtils.getCurrentLid(participantWid)
@@ -962,11 +962,11 @@ exports.LoadUtils = () => {
         }
 
         if (rpcResult.name === 'AddParticipantsResponseSuccess') {
-            const code = resultArgs?.value.error ?? '200';
-            data.name = resultArgs?.name;
+            const code = resultArgs ?.value.error ?? '200';
+            data.name = resultArgs ?.name;
             data.code = +code;
-            data.inviteV4Code = resultArgs?.value.addRequestCode;
-            data.inviteV4CodeExp = resultArgs?.value.addRequestExpiration?.toString();
+            data.inviteV4Code = resultArgs ?.value.addRequestCode;
+            data.inviteV4CodeExp = resultArgs ?.value.addRequestExpiration ?.toString();
         }
 
         else if (rpcResult.name === 'AddParticipantsResponseClientError') {
@@ -992,7 +992,7 @@ exports.LoadUtils = () => {
 
         await window.Store.GroupMetadata.queryAndUpdate(groupWid);
 
-        if (!requesterIds?.length) {
+        if (!requesterIds ?.length) {
             membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
         } else {
             !Array.isArray(requesterIds) && (requesterIds = [requesterIds]);
@@ -1045,11 +1045,11 @@ exports.LoadUtils = () => {
                     const value = toApprove
                         ? response.value.membershipRequestsActionApprove
                         : response.value.membershipRequestsActionReject;
-                    if (value?.participant) {
+                    if (value ?.participant) {
                         const [_] = value.participant.map(p => {
                             const error = toApprove
-                                ? value.participant[0].membershipRequestsActionAcceptParticipantMixins?.value.error
-                                : value.participant[0].membershipRequestsActionRejectParticipantMixins?.value.error;
+                                ? value.participant[0].membershipRequestsActionAcceptParticipantMixins ?.value.error
+                                    : value.participant[0].membershipRequestsActionRejectParticipantMixins ?.value.error;
                             return {
                                 requesterId: window.Store.WidFactory.createWid(p.jid)._serialized,
                                 ...(error

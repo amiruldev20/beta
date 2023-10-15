@@ -64,8 +64,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
     /* eslint-enable no-undef, no-cond-assign */
     // eslint-disable-next-line no-undef
-    if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
-
+    
     /* eslint-enable no-undef, no-cond-assign */
 
     window.Store.StickerTools = {
@@ -104,6 +103,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         };
     }
 
+     if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
     const _linkPreview = window.mR.findModule('queryLinkPreview');
     if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {

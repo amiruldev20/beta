@@ -13,7 +13,7 @@ const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('node-webpmux');
 const fs = require('fs').promises;
-
+const sharp = require('sharp')
 const { Readable } = require('stream')
 const Fs = require('fs')
 const axios = require('axios')
@@ -295,9 +295,9 @@ class Util {
                         responseType: "arraybuffer",
                         ...options,
                     })
-                    let buffer = await data?.data
-                    let name = /filename/i.test(data.headers?.get("content-disposition")) ? data.headers?.get("content-disposition")?.match(/filename=(.*)/)?.[1]?.replace(/["';]/g, '') : ''
-                    let mime = mimes.lookup(name) || data.headers.get("content-type") || (await fileType.fromBuffer(buffer))?.mime
+                    let buffer = await data ?.data
+                    let name = /filename/i.test(data.headers ?.get("content-disposition")) ? data.headers ?.get("content-disposition") ?.match(/filename=(.*)/) ?.[1] ?.replace(/["';]/g, '') : ''
+                    let mime = mimes.lookup(name) || data.headers.get("content-type") || (await fileType.fromBuffer(buffer)) ?.mime
                     resolve({
                         data: buffer,
                         size: Buffer.byteLength(buffer),
@@ -331,7 +331,7 @@ class Util {
                         })
                     });
                 } else if (Buffer.isBuffer(string)) {
-                    let size = Buffer?.byteLength(string) || 0
+                    let size = Buffer ?.byteLength(string) || 0
                     resolve({
                         data: string,
                         size,
@@ -367,7 +367,7 @@ class Util {
                     });
                 }
             } catch (e) {
-                reject(new Error(e?.message || e))
+                reject(new Error(e ?.message || e))
             }
         });
     }
@@ -383,12 +383,12 @@ class Util {
                 }
             }))
 
-            if (data?.data && save) {
+            if (data ?.data && save) {
                 filename = `../../temp/${Date.now()}.${data.ext}`
-                Fs.promises.writeFile(filename, data?.data);
+                Fs.promises.writeFile(filename, data ?.data);
             }
             return {
-                filename: data?.name ? data.name : filename,
+                filename: data ?.name ? data.name : filename,
                 ...data
             };
         } catch (e) {
@@ -416,7 +416,24 @@ class Util {
         })
     }
 
+    /* resize image */
+    static async resizeImage(buffer, height) {
+        buffer = (await this.getFile(buffer)).data
+        /**
+         * @param {Sharp} img
+         * @param {number} maxSize
+         * @return {Promise<Sharp>}
+         */
+        const resizeByMax = async (img, maxSize) => {
+            const metadata = await img.metadata();
+            const outputRatio = maxSize / Math.max(metadata.height, metadata.width);
+            return img.resize(Math.floor(metadata.width * outputRatio), Math.floor(metadata.height * outputRatio));
+        };
 
+        const img = await sharp(buffer)
+
+        return (await resizeByMax(img, height)).toFormat('jpg').toBuffer()
+    }
 
 }
 

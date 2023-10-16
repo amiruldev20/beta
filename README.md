@@ -33,6 +33,7 @@ docs? check folder docs
 | ------------- | ------------- |
 | Login via phone | ✅ |
 | Multi Device | ✅ |
+| Creae Channel | ✅ |
 | Join Wa Beta | ✅ |
 | Change theme | ✅ |
 | Send polling | ✅ |

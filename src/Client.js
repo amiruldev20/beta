@@ -151,7 +151,7 @@ await page.addScriptTag({
 path: require.resolve("@amiruldev/wajs"),
 });
 
-await page.waitForFunction(() => window.WPP?.isReady, {
+await page.waitForFunction(() => window.WPP ?.isReady, {
 timeout: 60000
 });
 await page
@@ -1040,12 +1040,12 @@ sendVideoAsGif: options.gifPlayBack,
 sendMediaAsSticker: options.asSticker,
 sendMediaAsDocument: options.asDocument,
 caption: options.caption,
-quotedMessageId: options.quoted?.id ?
+quotedMessageId: options.quoted ?.id ?
 options.quoted._serialized || options.quoted.id._serialized : options.quoted,
 parseVCards: options.parseVCards === false ? false : true,
 mentionedJidList: Array.isArray(options.mentions) ?
 options.mentions.map((contact) =>
-contact?.id ? contact?.id?._serialized : contact
+contact ?.id ? contact ?.id ?._serialized : contact
 ) : [],
 extraOptions: options.extra,
 };
@@ -1068,7 +1068,7 @@ content = content;
 } else {
 internalOptions.attachment = {
 mimetype: options.mimetype ? options.mimetype : media.mime,
-data: media?.data?.toString("base64") || Util.bufferToBase64(media.data),
+data: media ?.data ?.toString("base64") || Util.bufferToBase64(media.data),
 filename: options.fileName ?
 options.fileName : Util.getRandom(media.ext),
 filesize: options.fileSize ? options.fileSize : media.size,
@@ -1113,28 +1113,28 @@ content = "";
 if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
 internalOptions.attachment = await Util.formatToWebpSticker(
 internalOptions.attachment, {
-packId: options?.packId ? options.packId : global?.Exif?.packId,
-packName: options?.packName ?
-options.packName : global?.Exif?.packName,
-packPublish: options?.packPublish ?
-options.packPublish : global?.Exif?.packPublish,
-packEmail: options?.packEmail ?
-options.packEmail : global?.Exif?.packEmail,
-packWebsite: options?.packWebsite ?
-options.packWebsite : global?.Exif?.packWebsite,
-androidApp: options?.androidApp ?
-options.androidApp : global?.Exif?.androidApp,
-iOSApp: options?.iOSApp ? options.iOSApp : global?.Exif?.iOSApp,
-categories: options?.categories ?
-options.categories : global?.Exif?.categories,
-isAvatar: options?.isAvatar ?
-options.isAvatar : global?.Exif?.isAvatar,
+packId: options ?.packId ? options.packId : global ?.Exif ?.packId,
+packName: options ?.packName ?
+options.packName : global ?.Exif ?.packName,
+packPublish: options ?.packPublish ?
+options.packPublish : global ?.Exif ?.packPublish,
+packEmail: options ?.packEmail ?
+options.packEmail : global ?.Exif ?.packEmail,
+packWebsite: options ?.packWebsite ?
+options.packWebsite : global ?.Exif ?.packWebsite,
+androidApp: options ?.androidApp ?
+options.androidApp : global ?.Exif ?.androidApp,
+iOSApp: options ?.iOSApp ? options.iOSApp : global ?.Exif ?.iOSApp,
+categories: options ?.categories ?
+options.categories : global ?.Exif ?.categories,
+isAvatar: options ?.isAvatar ?
+options.isAvatar : global ?.Exif ?.isAvatar,
 },
 this.mPage
 );
 }
 
-if (internalOptions.attachment?.filesize > 42428800) {
+if (internalOptions.attachment ?.filesize > 42428800) {
 let startDivision = 2;
 let middle = internalOptions.attachment.data.length / startDivision;
 let currentIndex = 0;
@@ -1188,7 +1188,7 @@ if (sendSeen) {
 window.WWebJS.sendSeen(chatId);
 }
 
-if (options?.attachment?.data?.startsWith('mediaChunk')) {
+if (options ?.attachment ?.data ?.startsWith('mediaChunk')) {
 options.attachment.data = window[options.attachment.data];
 delete window[options.attachment.data];
 }
@@ -1236,8 +1236,8 @@ _serialized,
 }) => {
 try {
 const decryptedMedia = await (
-window.Store.DownloadManager?.downloadAndMaybeDecrypt ||
-window.Store.DownloadManager?.downloadAndDecrypt
+window.Store.DownloadManager ?.downloadAndMaybeDecrypt ||
+window.Store.DownloadManager ?.downloadAndDecrypt
 )({
 directPath,
 encFilehash,
@@ -1280,7 +1280,7 @@ _serialized: msg.id._serialized,
 );
 
 if (!result) return undefined;
-return Util.base64ToBuffer(result?.data);
+return Util.base64ToBuffer(result ?.data);
 }
 
 /**
@@ -1291,24 +1291,24 @@ return Util.base64ToBuffer(result?.data);
  */
 async downloadAndSaveMedia(message, filename) {
 if (!message.isMedia) return;
-
-filename = filename ?
-filename :
-Util.getRandom(
-extension(message?.mime || message._data.mimetype || message.mimetype)
-);
 const buffer = await this.downloadMediaMessage(message);
-const filePath = join(__dirname, "..", "..", "temp", filename);
-const folderPath = "../../temp";
-
-if (!fs.existsSync(folderPath)) {
-fs.mkdirSync(folderPath);
-console.log('Folder "tmp" created!!');
-} else {
+const getF = await Util.getFile(buffer) 
+filename = filename ? filename : Util.getRandom(getF.ext) 
+const folderPath = path.join(__dirname, "..", "..", "temp")
+if (!Fs.existsSync(folderPath)) {
+Fs.mkdirSync(folderPath);
+console.log('Folder "temp" created!!');
 }
-await fs.writeFile(filePath, buffer);
-
-return filePath;
+const filePath = path.join(__dirname, "..", "..", "temp", filename);
+return new Promise((resolve, reject) => {
+Fs.writeFile(filePath, buffer, (err) => {
+if (err) {
+reject(err);
+} else {
+resolve(filePath);
+}
+});
+});
 }
 
 /**
@@ -1404,7 +1404,7 @@ return contacts.map((contact) => ContactFactory.create(this, contact));
  * @param {*} number 
  * @returns 
  */
-async saveContact(number) {
+async isSaveContact(number) {
 let contact = await this.mPage.evaluate((number) => {
 return window.WWebJS.getContact(number);
 }, number);
@@ -1433,22 +1433,38 @@ return ContactFactory.create(this, contact);
  */
 async getInviteInfo(inviteCode) {
 return await this.mPage.evaluate((inviteCode) => {
-return window.Store.InviteInfo.queryGroupInvite(inviteCode);
+return window.Store.GroupInvite.queryGroupInvite(inviteCode);
 }, inviteCode);
 }
 
 /**
  * accept invite
- * @param {*} inviteCode 
- * @returns 
+ * @param {*} inviteCode
  */
 async acceptInvite(inviteCode) {
-const res = await this.mPage.evaluate(async (inviteCode) => {
-return await window.Store.Invite.joinGroupViaInvite(inviteCode);
-}, inviteCode);
-
-return res.gid._serialized;
+try {
+return await this.mPage.evaluate((inviteCode) => {
+    return WPP.group.join(inviteCode)
+}, inviteCode)
+} catch {
+    return 'The request could not be processed.'
 }
+}
+
+/**
+ * accept invite v4 message
+ * @param {*} inviteInfo
+ * @returns 
+ */
+async acceptInviteV4(inviteInfo) {
+        if (!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object';
+        if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
+        return this.mPage.evaluate(async inviteInfo => {
+            let { groupId, fromId, inviteCode, inviteCodeExp } = inviteInfo;
+            let userWid = window.Store.WidFactory.createWid(fromId);
+            return await window.Store.GroupInviteV4.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
+        }, inviteInfo);
+    }
 
 /**
  * set status bio
@@ -1979,7 +1995,7 @@ message: "Can't change theme",
 async getTheme() {
 const theme = await this.mPage.evaluate(async () => {
 if (window.localStorage) {
-return await JSON.parse(JSON.stringify(window.localStorage))?.theme;
+return await JSON.parse(JSON.stringify(window.localStorage)) ?.theme;
 } else {
 return await window.Store.Theme.getTheme();
 }
@@ -2179,8 +2195,8 @@ const fileContent = Util.getFile(pathOrBase64);
 var view = nameOrOptions.view ? true : false;
 var ptt = nameOrOptions.ptt ? true : false;
 let options = {
-type: nameOrOptions?.type ? nameOrOptions.type : "auto-detect",
-filename: nameOrOptions?.filename ? nameOrOptions.filename : "",
+type: nameOrOptions ?.type ? nameOrOptions.type : "auto-detect",
+filename: nameOrOptions ?.filename ? nameOrOptions.filename : "",
 mimetype: fileContent.mime,
 isViewOnce: view,
 isPtt: ptt,
@@ -2190,7 +2206,7 @@ const base64 = `data:${(await fileContent).mime};base64,${(
 await fileContent
 ).data.toString("base64")}`;
 
-if (!!nameOrOptions?.quoted) {
+if (!!nameOrOptions ?.quoted) {
 options.quotedMsg =
 typeof nameOrOptions.quoted === "object" ?
 nameOrOptions.quoted.id._serialized :
@@ -2199,10 +2215,10 @@ nameOrOptions.quoted || nameOrOptions.quoted._serialized;
 delete nameOrOptions.quoted;
 }
 
-if (nameOrOptions?.mentions) {
+if (nameOrOptions ?.mentions) {
 options.mentionedJidList = Array.isArray(options.mentions) ?
 options.mentions.map((contact) =>
-contact?.id ? contact?.id?._serialized : contact
+contact ?.id ? contact ?.id ?._serialized : contact
 ) : [];
 
 delete nameOrOptions.mentions;
@@ -2253,10 +2269,10 @@ statusId
 const wid = window.Store.WidFactory.createWid(chatId);
 const statusStore = window.Store.StatusV3.get(wid);
 
-const status = statusStore?.msgs.get(statusId);
-await statusStore?.sendReadStatus(
+const status = statusStore ?.msgs.get(statusId);
+await statusStore ?.sendReadStatus(
 status,
-status?.mediaKeyTimestamp || status?.t
+status ?.mediaKeyTimestamp || status ?.t
 );
 }, {
 chatId,
@@ -2521,7 +2537,7 @@ picture: pict
 
 /* New Function */
 async parseMention(text) {
-    return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(v => v[1] + '@c.us') || []
+return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(v => v[1] + '@c.us')  ||  []
     }
 
 }

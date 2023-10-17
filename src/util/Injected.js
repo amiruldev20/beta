@@ -1,7 +1,7 @@
 'use strict';
 
 // Exposes the internal Store to the WhatsApp Web client
-export const ExposeStore = (moduleRaidStr) => {
+exports.ExposeStore = (moduleRaidStr) => {
     eval('var moduleRaid = ' + moduleRaidStr);
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
@@ -14,10 +14,8 @@ export const ExposeStore = (moduleRaidStr) => {
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
-    window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
     window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
-    window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
@@ -61,22 +59,16 @@ export const ExposeStore = (moduleRaidStr) => {
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
-    window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
-    window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
-    window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
     };
+  
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
         ...window.mR.findModule('sendSetPicture')[0]
-    };
-    window.Store.MembershipRequestUtils = {
-        ...window.mR.findModule('getMembershipApprovalRequests')[0],
-        ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -91,6 +83,7 @@ export const ExposeStore = (moduleRaidStr) => {
     // eslint-disable-next-line no-undef
     if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
 
+
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
     const _linkPreview = window.mR.findModule('queryLinkPreview');
     if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {
@@ -98,14 +91,14 @@ export const ExposeStore = (moduleRaidStr) => {
     }
 
     const _isMDBackend = window.mR.findModule('isMDBackend');
-    if (_isMDBackend && _isMDBackend[0] && _isMDBackend[0].isMDBackend) {
+    if(_isMDBackend && _isMDBackend[0] && _isMDBackend[0].isMDBackend) {
         window.Store.MDBackend = _isMDBackend[0].isMDBackend();
     } else {
         window.Store.MDBackend = true;
     }
 
     const _features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0];
-    if (_features) {
+    if(_features) {
         window.Store.Features = _features.LegacyPhoneFeatures;
     }
 
@@ -119,6 +112,8 @@ export const ExposeStore = (moduleRaidStr) => {
 
     /**
      * Function to modify functions
+     * Referenced from and modified:
+     * @see https://github.com/pedroslopez/whatsapp-web.js/pull/1636/commits/81111faa058d8e715285a2bfc9a42636074f7c3d#diff-de25cb4b9105890088bb033eac000d1dd2104d3498a8523082dc7eaf319738b8R75-R78
      * @param {TargetOptions} target Options specifying the target function to search for modifying
      * @param {Function} callback Modified function
      */
@@ -131,16 +126,21 @@ export const ExposeStore = (moduleRaidStr) => {
         module[target.index][target.property] = modifiedFunction;
     };
 
+    /**
+     * Referenced from and modified:
+     * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L156
+     */
     window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
-    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
+    /**
+     * Referenced from and modified:
+     * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L164
+     */
+    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? 'text' : func(...args); });
 };
 
-export const LoadUtils = () => {
-    window.WWebJS = {
-        ...WPP
-    };
-
+exports.LoadUtils = () => {
+    window.WWebJS = {};
 
     window.WWebJS.sendSeen = async (chatId) => {
         let chat = window.Store.Chat.get(chatId);
@@ -162,9 +162,9 @@ export const LoadUtils = () => {
                     forceDocument: options.sendMediaAsDocument,
                     forceGif: options.sendVideoAsGif
                 });
-
-            if (options.caption) {
-                attOptions.caption = options.caption;
+            
+            if (options.caption){
+                attOptions.caption = options.caption; 
             }
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
             attOptions.isViewOnce = options.isViewOnce;
@@ -177,8 +177,8 @@ export const LoadUtils = () => {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
 
             // TODO remove .canReply() once all clients are updated to >= v2.2241.6
-            const canReply = window.Store.ReplyUtils ?
-                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) :
+            const canReply = window.Store.ReplyUtils ? 
+                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) : 
                 quotedMessage.canReply();
 
             if (canReply) {
@@ -243,7 +243,7 @@ export const LoadUtils = () => {
             delete options.linkPreview;
 
             // Not supported yet by WhatsApp Web on MD
-            if (!window.Store.MDBackend) {
+            if(!window.Store.MDBackend) {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
                     const preview = await window.Store.Wap.queryLinkPreview(link.url);
@@ -253,9 +253,9 @@ export const LoadUtils = () => {
                 }
             }
         }
-
+        
         let buttonOptions = {};
-        if (options.buttons) {
+        if(options.buttons){
             let caption;
             if (options.buttons.type === 'chat') {
                 content = options.buttons.body;
@@ -297,7 +297,7 @@ export const LoadUtils = () => {
         const meUser = window.Store.User.getMaybeMeUser();
         const isMD = window.Store.MDBackend;
         const newId = await window.Store.MsgKey.newId();
-
+        
         const newMsgId = new window.Store.MsgKey({
             from: meUser,
             to: chat.id,
@@ -337,12 +337,12 @@ export const LoadUtils = () => {
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
     };
-
+	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
 
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
-
+        
         if (options.mentionedJidList) {
             options.mentionedJidList = options.mentionedJidList.map(cId => window.Store.Contact.get(cId).id);
         }
@@ -351,7 +351,7 @@ export const LoadUtils = () => {
             options.linkPreview = null;
 
             // Not supported yet by WhatsApp Web on MD
-            if (!window.Store.MDBackend) {
+            if(!window.Store.MDBackend) {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
                     const preview = await window.Store.Wap.queryLinkPreview(link.url);
@@ -506,7 +506,7 @@ export const LoadUtils = () => {
         return msg;
     };
 
-  
+
     window.WWebJS.getChatModel = async chat => {
 
         let res = chat.serialize();
@@ -519,7 +519,7 @@ export const LoadUtils = () => {
             await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata = chat.groupMetadata.serialize();
         }
-
+        
         res.lastMessage = null;
         if (res.msgs && res.msgs.length) {
             const lastMessage = chat.lastReceivedKey ? window.Store.Msg.get(chat.lastReceivedKey._serialized) : null;
@@ -527,7 +527,7 @@ export const LoadUtils = () => {
                 res.lastMessage = window.WWebJS.getMessageModel(lastMessage);
             }
         }
-
+        
         delete res.msgs;
         delete res.msgUnsyncedButtonReplyMsgs;
         delete res.unsyncedButtonReplies;
@@ -732,17 +732,17 @@ export const LoadUtils = () => {
             chatId = window.Store.WidFactory.createWid(chatId);
         }
         switch (state) {
-            case 'typing':
-                await window.Store.ChatState.sendChatStateComposing(chatId);
-                break;
-            case 'recording':
-                await window.Store.ChatState.sendChatStateRecording(chatId);
-                break;
-            case 'stop':
-                await window.Store.ChatState.sendChatStatePaused(chatId);
-                break;
-            default:
-                throw 'Invalid chatstate';
+        case 'typing':
+            await window.Store.ChatState.sendChatStateComposing(chatId);
+            break;
+        case 'recording':
+            await window.Store.ChatState.sendChatStateRecording(chatId);
+            break;
+        case 'stop':
+            await window.Store.ChatState.sendChatStatePaused(chatId);
+            break;
+        default:
+            throw 'Invalid chatstate';
         }
 
         return true;
@@ -811,7 +811,7 @@ export const LoadUtils = () => {
 
         options = Object.assign({ size: 640, mimetype: media.mimetype, quality: .75, asDataUrl: false }, options);
 
-        const img = await new Promise((resolve, reject) => {
+        const img = await new Promise ((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve(img);
             img.onerror = reject;
@@ -852,7 +852,7 @@ export const LoadUtils = () => {
             const res = await window.Store.GroupUtils.sendSetPicture(chatWid, thumbnail, profilePic);
             return res ? res.status === 200 : false;
         } catch (err) {
-            if (err.name === 'ServerStatusCodeError') return false;
+            if(err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
@@ -866,204 +866,8 @@ export const LoadUtils = () => {
             const res = await window.Store.GroupUtils.requestDeletePicture(chatWid);
             return res ? res.status === 200 : false;
         } catch (err) {
-            if (err.name === 'ServerStatusCodeError') return false;
+            if(err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
-
-    window.WWebJS.membershipRequestAction = async (groupId, action, requesterIds, sleep) => {
-        const groupWid = window.Store.WidFactory.createWid(groupId);
-        const group = await window.Store.Chat.find(groupWid);
-        const toApprove = action === 'Approve';
-        let membershipRequests;
-        let response;
-        let result = [];
-
-        await window.Store.GroupMetadata.queryAndUpdate(groupWid);
-
-        if (!requesterIds?.length) {
-            membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
-        } else {
-            !Array.isArray(requesterIds) && (requesterIds = [requesterIds]);
-            membershipRequests = requesterIds.map(r => window.Store.WidFactory.createWid(r));
-        }
-
-        if (!membershipRequests.length) return [];
-
-        const participantArgs = membershipRequests.map(m => ({
-            participantArgs: [
-                {
-                    participantJid: window.Store.WidToJid.widToUserJid(m)
-                }
-            ]
-        }));
-
-        const groupJid = window.Store.WidToJid.widToGroupJid(groupWid);
-
-        const _getSleepTime = (sleep) => {
-            if (!Array.isArray(sleep) || (sleep.length === 2 && sleep[0] === sleep[1])) {
-                return sleep;
-            }
-            if (sleep.length === 1) {
-                return sleep[0];
-            }
-            sleep[1] - sleep[0] < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100);
-            return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
-        };
-
-        const membReqResCodes = {
-            default: `An unknown error occupied while ${toApprove ? 'approving' : 'rejecting'} the participant membership request`,
-            400: 'ParticipantNotFoundError',
-            401: 'ParticipantNotAuthorizedError',
-            403: 'ParticipantForbiddenError',
-            404: 'ParticipantRequestNotFoundError',
-            408: 'ParticipantTemporarilyBlockedError',
-            409: 'ParticipantConflictError',
-            412: 'ParticipantParentLinkedGroupsResourceConstraintError',
-            500: 'ParticipantResourceConstraintError'
-        };
-
-        try {
-            for (const participant of participantArgs) {
-                response = await window.Store.MembershipRequestUtils.sendMembershipRequestsActionRPC({
-                    iqTo: groupJid,
-                    [toApprove ? 'approveArgs' : 'rejectArgs']: participant
-                });
-
-                if (response.name === 'MembershipRequestsActionResponseSuccess') {
-                    const value = toApprove
-                        ? response.value.membershipRequestsActionApprove
-                        : response.value.membershipRequestsActionReject;
-                    if (value?.participant) {
-                        const [_] = value.participant.map(p => {
-                            const error = toApprove
-                                ? value.participant[0].membershipRequestsActionAcceptParticipantMixins?.value.error
-                                : value.participant[0].membershipRequestsActionRejectParticipantMixins?.value.error;
-                            return {
-                                requesterId: window.Store.WidFactory.createWid(p.jid)._serialized,
-                                ...(error
-                                    ? { error: +error, message: membReqResCodes[error] || membReqResCodes.default }
-                                    : { message: `${toApprove ? 'Approved' : 'Rejected'} successfully` })
-                            };
-                        });
-                        _ && result.push(_);
-                    }
-                } else {
-                    result.push({
-                        requesterId: window.Store.JidToWid.userJidToUserWid(participant.participantArgs[0].participantJid)._serialized,
-                        message: 'ServerStatusCodeError'
-                    });
-                }
-
-                sleep &&
-                    participantArgs.length > 1 &&
-                    participantArgs.indexOf(participant) !== participantArgs.length - 1 &&
-                    (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
-            }
-            return result;
-        } catch (err) {
-            return [];
-        }
-    };
-
-    window.WWebJS.getProfilePicThumbToBase64 = async (chatWid) => {
-        const profilePicCollection = await window.Store.ProfilePicThumb.find(chatWid);
-
-        const _readImageAsBase64 = (imageBlob) => {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = function () {
-                    const base64Image = reader.result;
-                    if (base64Image == null) {
-                        resolve(undefined);
-                    } else {
-                        const base64Data = base64Image.toString().split(',')[1];
-                        resolve(base64Data);
-                    }
-                };
-                reader.readAsDataURL(imageBlob);
-            });
-        };
-
-        if (profilePicCollection?.img) {
-            try {
-                const response = await fetch(profilePicCollection.img);
-                if (response.ok) {
-                    const imageBlob = await response.blob();
-                    if (imageBlob) {
-                        const base64Image = await _readImageAsBase64(imageBlob);
-                        return base64Image;
-                    }
-                }
-            } catch (error) { /* empty */ }
-        }
-        return undefined;
-    };
-
-    window.WWebJS.getAddParticipantsRpcResult = async (groupMetadata, groupWid, participantWid) => {
-        const participantLidArgs = groupMetadata?.isLidAddressingMode
-            ? {
-                phoneNumber: participantWid,
-                lid: window.Store.LidUtils.getCurrentLid(participantWid)
-            }
-            : { phoneNumber: participantWid };
-
-        const iqTo = window.Store.WidToJid.widToGroupJid(groupWid);
-
-        const participantArgs =
-            participantLidArgs.lid
-                ? [{
-                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.lid),
-                    phoneNumberMixinArgs: {
-                        anyPhoneNumber: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-                    }
-                }]
-                : [{
-                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-                }];
-
-        let rpcResult, resultArgs;
-        const isOldImpl = window.compareWwebVersions(window.Debug.VERSION, '<=', '2.2335.9');
-        const data = {
-            name: undefined,
-            code: undefined,
-            inviteV4Code: undefined,
-            inviteV4CodeExp: undefined
-        };
-
-        try {
-            rpcResult = await window.Store.GroupParticipants.sendAddParticipantsRPC({ participantArgs, iqTo });
-            resultArgs = isOldImpl
-                ? rpcResult.value.addParticipant[0].addParticipantsParticipantMixins
-                : rpcResult.value.addParticipant[0]
-                    .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
-                    .value
-                    .addParticipantsParticipantMixins;
-        } catch (err) {
-            data.code = 400;
-            return data;
-        }
-
-        if (rpcResult.name === 'AddParticipantsResponseSuccess') {
-            const code = resultArgs?.value.error ?? '200';
-            data.name = resultArgs?.name;
-            data.code = +code;
-            data.inviteV4Code = resultArgs?.value.addRequestCode;
-            data.inviteV4CodeExp = resultArgs?.value.addRequestExpiration?.toString();
-        }
-
-        else if (rpcResult.name === 'AddParticipantsResponseClientError') {
-            const { code: code } = rpcResult.value.errorAddParticipantsClientErrors.value;
-            data.code = +code;
-        }
-
-        else if (rpcResult.name === 'AddParticipantsResponseServerError') {
-            const { code: code } = rpcResult.value.errorServerErrors.value;
-            data.code = +code;
-        }
-
-        return data;
-    };
-
-
 };

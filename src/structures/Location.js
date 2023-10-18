@@ -1,12 +1,13 @@
-'use strict';
-
-/**
- * Location send options
- * @typedef {Object} LocationSendOptions
- * @property {string} [name] Location name
- * @property {string} [address] Location address
- * @property {string} [url] URL address to be shown within a location message
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
  */
+
+'use strict';
 
 /**
  * Location information
@@ -15,9 +16,9 @@ class Location {
     /**
      * @param {number} latitude
      * @param {number} longitude
-     * @param {LocationSendOptions} [options] Location send options
+     * @param {?string} description
      */
-    constructor(latitude, longitude, options = {}) {
+    constructor(latitude, longitude, description) {
         /**
          * Location latitude
          * @type {number}
@@ -32,30 +33,10 @@ class Location {
 
         /**
          * Name for the location
-         * @type {string|undefined}
+         * @type {?string}
          */
-        this.name = options.name;
-
-        /**
-         * Location address
-         * @type {string|undefined}
-         */
-        this.address = options.address;
-
-        /**
-         * URL address to be shown within a location message
-         * @type {string|undefined}
-         */
-        this.url = options.url;
-
-        /**
-         * Location full description
-         * @type {string|undefined}
-         */
-        this.description = this.name && this.address
-            ? `${this.name}\n${this.address}`
-            : this.name || this.address || '';
+        this.description = description;
     }
 }
 
-module.exports = Location;
+export default Location

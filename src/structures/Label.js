@@ -1,8 +1,17 @@
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
+ */
+
 'use strict';
 
-const Base = require('./Base');
+import Base from './Base.js';
 // eslint-disable-next-line no-unused-vars
-const Chat = require('./Chat');
+import Chat from './Chat.js';
 
 /**
  * WhatsApp Business Label information
@@ -47,4 +56,4 @@ class Label extends Base {
 
 }
 
-module.exports = Label;
+export default Label;

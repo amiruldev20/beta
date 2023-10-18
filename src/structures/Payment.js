@@ -1,4 +1,13 @@
-const Base = require('./Base');
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
+ */
+
+import Base from './Base.js'
 
 class Payment extends Base {
     constructor(client, data) {
@@ -73,7 +82,6 @@ class Payment extends Base {
 
         return super._patch(data);
     }
-
 }
 
-module.exports = Payment;
+export default Payment;

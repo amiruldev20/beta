@@ -1,6 +1,15 @@
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
+ */
+
 'use strict';
 
-const Base = require('./Base');
+import Base from './Base.js';
 
 /**
  * Represents a Call on WhatsApp
@@ -55,6 +64,11 @@ class Call extends Base {
          */
         this.webClientShouldHandle = data.webClientShouldHandle;
         /**
+         * 
+         * @type {string}
+         */
+        this.state = data._state;
+        /**
          * Object with participants
          * @type {object}
          */
@@ -67,10 +81,10 @@ class Call extends Base {
      * Reject the call
     */
     async reject() {
-        return this.client.pupPage.evaluate((peerJid, id) => {
+        return this.client.mPage.evaluate(({ peerJid, id }) => {
             return window.WWebJS.rejectCall(peerJid, id);
-        }, this.from, this.id);
+        }, { peerJid: this.from, id: this.id });
     }
 }
 
-module.exports = Call;
+export default Call;

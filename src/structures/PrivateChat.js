@@ -1,6 +1,15 @@
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
+ */
+
 'use strict';
 
-const Chat = require('./Chat');
+import Chat from './Chat.js';
 
 /**
  * Represents a Private Chat on WhatsApp
@@ -10,4 +19,4 @@ class PrivateChat extends Chat {
 
 }
 
-module.exports = PrivateChat;
+export default PrivateChat;

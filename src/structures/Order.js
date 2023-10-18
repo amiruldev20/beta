@@ -1,7 +1,16 @@
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
+ */
+
 'use strict';
 
-const Base = require('./Base');
-const Product = require('./Product');
+import Base from './Base.js';
+import Product from './Product.js';
 
 /**
  * Represents a Order on WhatsApp
@@ -45,8 +54,6 @@ class Order extends Base {
 
         return super._patch(data);
     }
-
-
 }
 
-module.exports = Order;
+export default Order;

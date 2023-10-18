@@ -6,12 +6,12 @@
  * and then drop you into Node REPL with `client` in its context. 
  */
 
-const repl = require('repl');
+import repl from 'repl';
 
-const { Client, LocalAuth } = require('./index');
+import { Client, LocalAuth } from './index.js';
 
 const client = new Client({
-    puppeteer: { headless: false }, 
+    playwright: { headless: false }, 
     authStrategy: new LocalAuth()
 });
 

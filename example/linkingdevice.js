@@ -1,13 +1,20 @@
-const { Client, Location, List, Buttons, LocalAuth } = require('./index');
+const { Client, Location, List, Buttons, LinkingMethod } = (await import("mywajs"))
+import util from 'util'
 
 const client = new Client({
-    authStrategy: new LocalAuth(),
-    // proxyAuthentication: { username: 'username', password: 'password' },
-    puppeteer: { 
-        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-        headless: false
-    }
-});
+    linkingMethod: new LinkingMethod({
+        phone: {
+            number: "628xx"
+        },
+    }),
+    playwright: {
+       headless: true,
+       devtools: false,
+       userDataDir: ".mywajs_auth"
+   },
+   markOnlineAvailable: true,
+   authTimeoutMs: 60000
+  })
 
 client.initialize();
 
@@ -15,7 +22,7 @@ client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
 });
 
-client.on('qr', (qr) => {
+client.on('code', (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR RECEIVED', qr);
 });
@@ -36,23 +43,85 @@ client.on('ready', () => {
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
 
-    if (msg.body === '!ping reply') {
-        // Send a new message as a reply to the current one
+    if (msg.body === 'reply') {
+        // send reply
         msg.reply('pong');
 
-    } else if (msg.body === '!ping') {
-        // Send a new message to the same chat
+    } else if (msg.body === 'ping') {
+        // send message
         client.sendMessage(msg.from, 'pong');
 
-    } else if (msg.body.startsWith('!sendto ')) {
-        // Direct send a new message to specific id
-        let number = msg.body.split(' ')[1];
-        let messageIndex = msg.body.indexOf(number) + number.length;
-        let message = msg.body.slice(messageIndex, msg.body.length);
-        number = number.includes('@c.us') ? number : `${number}@c.us`;
-        let chat = await msg.getChat();
-        chat.sendSeen();
-        client.sendMessage(number, message);
+    } else if (msg.body === 'logout') {
+        // logout session
+        client.logout()
+
+    } else if (msg.body === 'getwweb') {
+        // get detail wweb
+        const res = await client.getWWeb()
+        msg.reply(util.format(res))
+
+    } else if (msg.body === 'read') {
+        // read message
+        client.sendSeen(msg.from)
+
+    } else if (msg.body.startsWith("search ")) {
+        // search messages
+        let mes = msg.body.split(" ")[1]
+        let search = await client.searchMessages(mes)
+        msg.reply(util.format(search))
+
+    } else if (msg.body === 'getchats') {
+        // get all chats
+        const get = await client.getChats()
+        msg.reply(util.format(get))
+
+    } else if (msg.body.startsWith("getchatfrom ")) {
+        // get chat from id
+        const id = msg.body.split(" ")[1]
+        const get = await client.getChatById(id)
+        msg.reply(util.format(get))
+
+    } else if (msg.body === 'getcontacts') {
+        // get all contact
+        const get = await client.getContacts()
+        msg.reply(util.format(get))
+
+    } else if (msg.body.startsWith("getcontact ")) {
+        // get contacy from jid
+        const jid = msg.body.split(" ")[1]
+        const get = await client.getContactById(jid)
+        msg.reply(util.format(get))
+
+    } else if (msg.body.startsWith("getmsg ")) {
+        // get message from id
+        const id = msg.body.split(" ")[1]
+        const get = await client.getMessageById(id)
+        msg.reply(util.format(get))
+
+    } else if (msg.body.startsWith("inviteinfo ")) {
+        // get detail code invite
+        const code = msg.body.split(" ")[1]
+        const get = await client.getInviteInfo(code)
+        msg.reply(util.format(get))
+
+    } else if (msg.body.startsWith("acclink ")) {
+        // accept invite via link
+        const get = msg.body.split(" ")[1]
+        const code = get.replace("https://chat.whatsapp.com/", "")
+        const acc = await client.acceptInvite(code)
+        msg.reply(util.format(acc))
+
+    } else if (msg.body.startsWith("setbio ")) {
+        // set status bio
+        const txt = msg.body.split(" ")[1]
+        const res = await client.setStatus(txt)
+        msg.reply(util.format(res))
+
+    } else if (msg.body.startsWith("setname ")) {
+        // set name bot
+        const name = msg.body.split(" ")[1]
+        await client.setName(name)
+        msg.reply("done")
 
     } else if (msg.body.startsWith('!subject ')) {
         // Change the group subject
@@ -95,13 +164,13 @@ client.on('message', async msg => {
         let chat = await msg.getChat();
         if (chat.isGroup) {
             msg.reply(`
-                *Group Details*
-                Name: ${chat.name}
-                Description: ${chat.description}
-                Created At: ${chat.createdAt.toString()}
-                Created By: ${chat.owner.user}
-                Participant count: ${chat.participants.length}
-            `);
+*Group Details*
+Name: ${chat.name}
+Description: ${chat.description}
+Created At: ${chat.createdAt.toString()}
+Created By: ${chat.owner.user}
+Participant count: ${chat.participants.length}
+`);
         } else {
             msg.reply('This command can only be used in a group!');
         }
@@ -111,29 +180,29 @@ client.on('message', async msg => {
     } else if (msg.body === '!info') {
         let info = client.info;
         client.sendMessage(msg.from, `
-            *Connection info*
-            User name: ${info.pushname}
-            My number: ${info.wid.user}
-            Platform: ${info.platform}
-        `);
+*Connection info*
+User name: ${info.pushname}
+My number: ${info.wid.user}
+Platform: ${info.platform}
+`);
     } else if (msg.body === '!mediainfo' && msg.hasMedia) {
         const attachmentData = await msg.downloadMedia();
         msg.reply(`
-            *Media info*
-            MimeType: ${attachmentData.mimetype}
-            Filename: ${attachmentData.filename}
-            Data (length): ${attachmentData.data.length}
-        `);
+*Media info*
+MimeType: ${attachmentData.mimetype}
+Filename: ${attachmentData.filename}
+Data (length): ${attachmentData.data.length}
+`);
     } else if (msg.body === '!quoteinfo' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
 
         quotedMsg.reply(`
-            ID: ${quotedMsg.id._serialized}
-            Type: ${quotedMsg.type}
-            Author: ${quotedMsg.author || quotedMsg.from}
-            Timestamp: ${quotedMsg.timestamp}
-            Has Media? ${quotedMsg.hasMedia}
-        `);
+ID: ${quotedMsg.id._serialized}
+Type: ${quotedMsg.type}
+Author: ${quotedMsg.author || quotedMsg.from}
+Timestamp: ${quotedMsg.timestamp}
+Has Media? ${quotedMsg.hasMedia}
+`);
     } else if (msg.body === '!resendmedia' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
         if (quotedMsg.hasMedia) {
@@ -151,14 +220,7 @@ client.on('message', async msg => {
             await client.sendMessage(msg.from, media, { isViewOnce: true });
         }
     } else if (msg.body === '!location') {
-        // only latitude and longitude
-        await msg.reply(new Location(37.422, -122.084));
-        // location with name only
-        await msg.reply(new Location(37.422, -122.084, { name: 'Googleplex' }));
-        // location with address only
-        await msg.reply(new Location(37.422, -122.084, { address: '1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA' }));
-        // location with name, address and url
-        await msg.reply(new Location(37.422, -122.084, { name: 'Googleplex', address: '1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA', url: 'https://google.com' }));
+        msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
     } else if (msg.location) {
         msg.reply(msg.location);
     } else if (msg.body.startsWith('!status ')) {
@@ -242,13 +304,14 @@ client.on('message', async msg => {
     }
 });
 
-client.on('message_create', (msg) => {
-    // Fired on all message creations, including your own
-    if (msg.fromMe) {
-        // do stuff here
-    }
-});
 
+/*client.on('message_create', (msg) => {
+    // Fired on all message creations, including your own
+  //  if (msg.fromMe) {
+        // do stuff here
+    //}
+});
+*/
 client.on('message_revoke_everyone', async (after, before) => {
     // Fired whenever a message is deleted by anyone (including you)
     console.log(after); // message after it was deleted.
@@ -264,13 +327,13 @@ client.on('message_revoke_me', async (msg) => {
 
 client.on('message_ack', (msg, ack) => {
     /*
-        == ACK VALUES ==
-        ACK_ERROR: -1
-        ACK_PENDING: 0
-        ACK_SERVER: 1
-        ACK_DEVICE: 2
-        ACK_READ: 3
-        ACK_PLAYED: 4
+    == ACK VALUES ==
+    ACK_ERROR: -1
+    ACK_PENDING: 0
+    ACK_SERVER: 1
+    ACK_DEVICE: 2
+    ACK_READ: 3
+    ACK_PLAYED: 4
     */
 
     if (ack == 3) {
@@ -352,9 +415,9 @@ client.on('contact_changed', async (message, oldId, newId, isContact) => {
 client.on('group_admin_changed', (notification) => {
     if (notification.type === 'promote') {
         /** 
-          * Emitted when a current user is promoted to an admin.
-          * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
-          */
+        * Emitted when a current user is promoted to an admin.
+        * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
+        */
         console.log(`You were promoted by ${notification.author}`);
     } else if (notification.type === 'demote')
         /** Emitted when a current user is demoted to a regular user. */

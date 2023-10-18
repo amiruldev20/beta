@@ -1,6 +1,15 @@
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
+ */
+
 'use strict';
 
-const Base = require('./Base');
+import Base from './Base.js';
 
 /**
  * Represents a Reaction on WhatsApp
@@ -66,4 +75,4 @@ class Reaction extends Base {
     
 }
 
-module.exports = Reaction;
+export default Reaction;

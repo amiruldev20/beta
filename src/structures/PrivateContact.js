@@ -1,6 +1,15 @@
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
+ */
+
 'use strict';
 
-const Contact = require('./Contact');
+import Contact from "./Contact.js";
 
 /**
  * Represents a Private Contact on WhatsApp
@@ -10,4 +19,4 @@ class PrivateContact extends Contact {
 
 }
 
-module.exports = PrivateContact;
+export default PrivateContact;

@@ -1,7 +1,16 @@
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
+ */
+
 'use strict';
 
-const PrivateContact = require('../structures/PrivateContact');
-const BusinessContact = require('../structures/BusinessContact');
+import PrivateContact from '../structures/PrivateContact.js';
+import BusinessContact from '../structures/BusinessContact.js';
 
 class ContactFactory {
     static create(client, data) {
@@ -13,4 +22,4 @@ class ContactFactory {
     }
 }
 
-module.exports = ContactFactory;
+export default ContactFactory;

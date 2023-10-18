@@ -1,19 +1,28 @@
+/*
+ * MywaJS 2023
+ * re-developed wwebjs
+ * using with playwright & wajs
+ * contact:
+ * wa: 085157489446
+ * ig: amirul.dev
+ */
+
 'use strict';
 
 /* Require Optional Dependencies */
 try {
-    var fs = require('fs-extra');
-    var unzipper = require('unzipper');
-    var archiver = require('archiver');
+    var fs = (await import('fs-extra'));
+    var unzipper = (await import('unzipper'));
+    var archiver = (await import('archiver'));
 } catch {
     fs = undefined;
     unzipper = undefined;
     archiver = undefined;
 }
 
-const path = require('path');
-const { Events } = require('./../util/Constants');
-const BaseAuthStrategy = require('./BaseAuthStrategy');
+import path from 'path';
+import { Events } from '../util/Constants.js';
+import BaseAuthStrategy from './BaseAuthStrategy.js';
 
 /**
  * Remote-based authentication
@@ -41,16 +50,16 @@ class RemoteAuth extends BaseAuthStrategy {
         this.clientId = clientId;
         this.backupSyncIntervalMs = backupSyncIntervalMs;
         this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
-        this.tempDir = `${this.dataPath}/wwebjs_temp_session_${this.clientId}`;
+        this.tempDir = `${this.dataPath}/wwebjs_temp_session`;
         this.requiredDirs = ['Default', 'IndexedDB', 'Local Storage']; /* => Required Files & Dirs in WWebJS to restore session */
     }
 
     async beforeBrowserInitialized() {
-        const puppeteerOpts = this.client.options.puppeteer;
+        const playwrightOpts = this.client.options.playwright;
         const sessionDirName = this.clientId ? `RemoteAuth-${this.clientId}` : 'RemoteAuth';
         const dirPath = path.join(this.dataPath, sessionDirName);
 
-        if (puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
+        if (playwrightOpts.userDataDir && playwrightOpts.userDataDir !== dirPath) {
             throw new Error('RemoteAuth is not compatible with a user-supplied userDataDir.');
         }
 
@@ -59,8 +68,8 @@ class RemoteAuth extends BaseAuthStrategy {
 
         await this.extractRemoteSession();
 
-        this.client.options.puppeteer = {
-            ...puppeteerOpts,
+        this.client.options.playwright = {
+            ...playwrightOpts,
             userDataDir: dirPath
         };
     }
@@ -201,4 +210,4 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 }
 
-module.exports = RemoteAuth;
+export default RemoteAuth;

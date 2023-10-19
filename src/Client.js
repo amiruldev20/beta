@@ -2440,4 +2440,4 @@ chatId
 
 }
 
-exports.Client;
+module.exports = Client;

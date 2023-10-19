@@ -8,8 +8,7 @@
  */
 
 'use strict';
-
-import Base from './Base.js';
+const Base = require('./Base');
 
 /**
  * Represents a Reaction on WhatsApp
@@ -68,11 +67,11 @@ class Reaction extends Base {
          * @type {?number}
          */
         this.ack = data.ack;
-        
-        
+
+
         return super._patch(data);
     }
-    
+
 }
 
-export default Reaction;
+module.exports = Reaction;

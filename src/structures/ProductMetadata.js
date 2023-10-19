@@ -7,7 +7,7 @@
  * ig: amirul.dev
  */
 
-import Base from './Base.js';
+const Base = require('./Base');
 
 class ProductMetadata extends Base {
     constructor(client, data) {
@@ -31,4 +31,4 @@ class ProductMetadata extends Base {
 
 }
 
-export default ProductMetadata;
+module.exports = ProductMetadata;

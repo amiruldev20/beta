@@ -9,8 +9,8 @@
 
 'use strict';
 
-import Base from './Base.js';
-import Message from './Message.js';
+const Base = require("./Base");
+const Message = require("./Message");
 
 /**
  * Represents a Chat on WhatsApp
@@ -94,7 +94,7 @@ class Chat extends Base {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(content, options) {
-        return await this.client.sendMessage(this.id._serialized, content, options);
+        return this.client.sendMessage(this.id._serialized, content, options);
     }
 
     /**
@@ -298,4 +298,4 @@ class Chat extends Base {
     }
 }
 
-export default Chat;
+module.exports = Chat;

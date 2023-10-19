@@ -8,13 +8,11 @@
  */
 
 'use strict';
-
-import fs from 'fs';
-import path from 'path';
-import mime from 'mime';
-import axios from 'axios';
-import { URL } from 'url';
-
+const fs = require('fs');
+const path = require('path');
+const mime = require('mime');
+const fetch = require('node-fetch');
+const { URL } = require('url');
 /**
  * Media attached to a message
  * @param {string} mimetype MIME type of the attachment
@@ -117,4 +115,4 @@ class MessageMedia {
     }
 }
 
-export default MessageMedia;
+module.exports = MessageMedia;

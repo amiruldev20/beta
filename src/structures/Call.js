@@ -9,7 +9,7 @@
 
 'use strict';
 
-import Base from './Base.js';
+const Base = require("./Base");
 
 /**
  * Represents a Call on WhatsApp
@@ -73,7 +73,7 @@ class Call extends Base {
          * @type {object}
          */
         this.participants = data.participants;
-        
+
         return super._patch(data);
     }
 
@@ -87,4 +87,4 @@ class Call extends Base {
     }
 }
 
-export default Call;
+module.exports = Call;

@@ -9,7 +9,7 @@
 
 'use strict';
 
-import Base from './Base.js';
+const Base = require('./Base');
 
 /**
  * Represents a GroupNotification on WhatsApp
@@ -121,4 +121,4 @@ class GroupNotification extends Base {
     
 }
 
-export default GroupNotification;
+module.exports = GroupNotification;

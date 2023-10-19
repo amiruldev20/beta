@@ -52,4 +52,4 @@ class LinkingMethod {
     }
 }
 
-export default LinkingMethod;
+module.exports = LinkingMethod;

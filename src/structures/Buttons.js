@@ -9,7 +9,8 @@
 
 'use strict';
 
-import MessageMedia from "./MessageMedia.js";
+const MessageMedia = require('./MessageMedia');
+const Util = require('../util/Util');
 
 /**
  * Button spec used in Buttons constructor
@@ -52,7 +53,7 @@ class Buttons {
          * @type {string}
          */
         this.title = title;
-        
+
         /**
          * footer of message
          * @type {string}
@@ -62,7 +63,7 @@ class Buttons {
         if (body instanceof MessageMedia) {
             this.type = 'media';
             this.title = '';
-        }else{
+        } else {
             this.type = 'chat';
         }
 
@@ -71,7 +72,7 @@ class Buttons {
          * @type {FormattedButtonSpec[]}
          */
         this.buttons = this._format(buttons);
-        if(!this.buttons.length){ throw '[BT01] No buttons';}
+        if (!this.buttons.length) { throw '[BT01] No buttons'; }
 
         /**
          * Override buttons with templates
@@ -85,7 +86,7 @@ class Buttons {
      * @param {ButtonSpec[]} buttons
      * @returns {FormattedButtonSpec[]}
      */
-    _format(buttons){
+    _format(buttons) {
         // Limit the buttons (max 3 of regular and 3 of special buttons) 5 buttons total at the same time
         const templateButtons = buttons.filter(button => button.url || button.number);
         const regularButtons = buttons.filter(button => !button.url && !button.number);
@@ -98,7 +99,7 @@ class Buttons {
                 return {
                     index,
                     callButton: {
-                        displayText: button.body, 
+                        displayText: button.body,
                         phoneNumber: button.number || ''
                     }
                 };
@@ -107,7 +108,7 @@ class Buttons {
                 return {
                     index,
                     urlButton: {
-                        displayText: button.body, 
+                        displayText: button.body,
                         url: button.url || ''
                     }
                 };
@@ -115,7 +116,7 @@ class Buttons {
                 return {
                     index,
                     quickReplyButton: {
-                        displayText: button.body, 
+                        displayText: button.body,
                         id: button.id || `${index}`
                     }
                 };
@@ -123,7 +124,7 @@ class Buttons {
 
         });
     }
-    
+
 }
 
-export default Buttons;
+module.exports = Buttons;

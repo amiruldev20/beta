@@ -6,92 +6,26 @@
  * wa: 085157489446
  * ig: amirul.dev
  */
-"use strict";
 
-import EventEmitter from "events";
-import playwright from "playwright-chromium";
-import moduleRaid from "@amiruldev/moduleraid/moduleraid.js";
-import {
-createRequire
-} from "module";
-import chalk from "chalk";
-import {
-promises as fs
-} from "fs";
-import {
-exec
-} from "child_process";
-import Fs from "fs";
-import path from "path";
+'use strict';
+const fs = require('fs')
+const Fs = require('fs')
+const path = require('path')
 
-import Util from "./util/Util.js";
-import InterfaceController from "./util/InterfaceController.js";
-import {
-WhatsWebURL,
-DefaultOptions,
-Events,
-WAState,
-} from "./util/Constants.js";
-import {
-ExposeStore,
-LoadUtils
-} from "./util/Injected.js";
-import ChatFactory from "./factories/ChatFactory.js";
-import ContactFactory from "./factories/ContactFactory.js";
-import {
-PollVote,
-ClientInfo,
-Message,
-MessageMedia,
-Contact,
-Location,
-GroupNotification,
-Label,
-Call,
-Buttons,
-List,
-Reaction,
-LinkingMethod
-} from "./structures/index.js";
-import LegacySessionAuth from "./authStrategies/LegacySessionAuth.js";
-import NoAuth from "./authStrategies/NoAuth.js";
+const EventEmitter = require('events');
+const playwright = require('playwright-chromium');
+const moduleRaid = require('@amiruldev/moduleraid/moduleraid');
+const Util = require('./util/Util');
+const InterfaceController = require('./util/InterfaceController');
+const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
+const { ExposeStore, LoadUtils } = require('./util/Injected');
+const ChatFactory = require('./factories/ChatFactory');
+const ContactFactory = require('./factories/ContactFactory');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat, PollVote } = require('./structures');
+const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
+const NoAuth = require('./authStrategies/NoAuth');
+const LinkingMethod = require('./LinkingMethod')
 
-const require = createRequire(import.meta.url);
-
-/**
- * Starting point for interacting with the WhatsApp Web API
- * @extends {EventEmitter}
- * @param {object} options - Client options
- * @param {AuthStrategy} options.authStrategy - Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used.
- * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
- * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
- * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
- * @param {string} options.restartOnAuthFail- @deprecated This option should be set directly on the LegacySessionAuth.
- * @param {object} options.session - @deprecated Only here for backwards-compatibility. You should move to using LocalAuth, or set the authStrategy to LegacySessionAuth explicitly.
- * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
- * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
- * @param {string} options.userAgent - User agent to use in puppeteer
- * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers
- * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
- *
- * @fires Client#qr
- * @fires Client#authenticated
- * @fires Client#auth_failure
- * @fires Client#ready
- * @fires Client#message
- * @fires Client#message_ack
- * @fires Client#message_create
- * @fires Client#message_revoke_me
- * @fires Client#message_revoke_everyone
- * @fires Client#media_uploaded
- * @fires Client#group_join
- * @fires Client#group_leave
- * @fires Client#group_update
- * @fires Client#disconnected
- * @fires Client#change_state
- * @fires Client#contact_changed
- * @fires Client#group_admin_changed
- */
 class Client extends EventEmitter {
 constructor(options = {}) {
 super();
@@ -155,7 +89,7 @@ if (!browserArgs.find((arg) => arg.includes("--user-agent"))) {
 browserArgs.push(`--user-agent=${this.options.userAgent}`);
 }
 
-browser = await playwright.chromium.launchPersistentContext('@mywa_auth', {
+browser = await playwright.chromium.launchPersistentContext('.mywa_auth', {
 ...playwrightOpts,
 args: browserArgs,
 timeout: 0,
@@ -213,14 +147,15 @@ WPP.conn.setLimit('unlimitedPin', true);
 })
 
 const inject = async () => {
-            await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
-                // These error, not as a result of injection directly, but since we use moduleRaid. nothing to do about this but do it again till it works
-                if (error.message.includes('EmojiUtil') || error.message.includes('Prism') || error.message.includes('createOrUpdateReactions')) {
-                    await inject();
-                }
-            });
-        };
-        await inject();
+    await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
+        // These error, not as a result of injection directly, but since we use moduleRaid. nothing to do about this but do it again till it works
+        if (error.message.includes('EmojiUtil') || error.message.includes('Prism') || error.message.includes('createOrUpdateReactions')) {
+            await inject();
+        }
+    });
+};
+await inject();
+
 // new
 const getElementByXpath = (path) => {
 return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -229,36 +164,22 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
 let lastPercent = null,
 lastPercentMessage = null;
 let loads = false
-// Menambahkan fungsi `loadingScreen` ke halaman
-await page.exposeFunction('loadingScreen', (percent, message) => {
-console.log('Process: ' + percent + '%');
-console.log('Message: ' + message);
-});
-
-const progressClass = 'progress.ZJWuG';
-
-await page.exposeFunction('getProgressValue', async (progressClass) => {
-const progressBar = await page.$(progressClass);
-if (progressBar) {
-return await progressBar.getAttribute('value');
+await page.exposeFunction('loadingScreen', async (percent, message) => {
+if (!loads) {
+this.emit(Events.LOADING_SCREEN, 'MywaJS', 'Please wait...')
+loads = true
 }
-return null;
 });
 
-await page.exposeFunction('getProgressMessage', async () => {
-const progressMessage = await page.$('div._3HbCE')
-if (progressMessage) {
-return progressMessage.textContent;
-}
-return null;
-});
+await page.exposeFunction('getElementByXpath', getElementByXpath);
 
-await page.evaluate(() => {
+await page.evaluate(async (selectors) => {
 const observer = new MutationObserver(async () => {
-const percent = await window.getProgressValue('progress.ZJWuG');
-const message = await window.getProgressMessage();
-if (percent !== null && message !== null) {
-window.loadingScreen(percent, message);
+let progressBar = window.getElementByXpath(selectors.PROGRESS);
+let progressMessage = window.getElementByXpath(selectors.PROGRESS_MESSAGE);
+
+if (progressBar) {
+window.loadingScreen(progressBar.value, progressMessage.innerText);
 }
 });
 
@@ -266,13 +187,15 @@ observer.observe(document, {
 attributes: true,
 childList: true,
 characterData: true,
-subtree: true,
+subtree: true
 });
+}, {
+PROGRESS: 'div.progress > progress',
+PROGRESS_MESSAGE: 'div.secondary'
 });
 
 console.log(
-`You Used Selector: ${
-this.options.selector ? this.options.selector : "default"
+`You Used Selector: ${this.options.selector ? this.options.selector : "default"
 }`
 );
 const INTRO_IMG_SELECTOR =
@@ -285,7 +208,6 @@ this.options.selector == 1
 : this.options.selector == 4
 ? `['[data-icon*=community]', '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"], [data-icon="intro-md-beta-logo-dark"], [data-icon="intro-md-beta-logo-light"]`
 : "[data-icon='search']";
-
 
 const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
@@ -356,7 +278,7 @@ await this.destroy();
 });
 
 await page.evaluate(
-function(selectors) {
+function (selectors) {
 const qr_container = document.querySelector(
 selectors.QR_CONTAINER
 );
@@ -430,7 +352,7 @@ await clickOnLinkWithPhoneButton();
 await typePhoneNumber();
 await page.click(NEXT_BUTTON);
 
-await page.evaluate(async function(selectors) {
+await page.evaluate(async function (selectors) {
 function waitForElementToExist(selector, timeout = 60000) {
 return new Promise((resolve, reject) => {
 if (document.querySelector(selector)) {
@@ -515,68 +437,27 @@ await handleLinkWithQRCode();
 await handleLinkWithPhoneNumber();
 }
 
- // Wait for code scan
- try {
-await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-} catch(error) {
+
+// Wait for code scan
+try {
+await page.waitForSelector(INTRO_IMG_SELECTOR, {
+timeout: 0
+});
+} catch (error) {
 if (
-error.name === 'ProtocolError' && 
-error.message && 
+error.name === 'ProtocolError' &&
+error.message &&
 error.message.match(/Target closed/)
 ) {
 // something has called .destroy() while waiting
 return;
 }
 
-throw error;
+//throw error;
+console.log("Closed MywaJS")
 }
 
 }
-
-await page.evaluate(() => {
-/**
- * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
- * @param {string} lOperand The left operand for the WWeb version string to compare with
- * @param {string} operator The comparison operator
- * @param {string} rOperand The right operand for the WWeb version string to compare with
- * @returns {boolean} Boolean value that indicates the result of the comparison
- */
-window.compareWwebVersions = (lOperand, operator, rOperand) => {
-if (!['>', '>=', '<', '<=', '='].includes(operator)) {
-throw new class _ extends Error {
-constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
-}('Invalid comparison operator is provided');
-
-}
-if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
-throw new class _ extends Error {
-constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
-}('A non-string WWeb version type is provided');
-}
-
-lOperand = lOperand.replace(/-beta$/, '');
-rOperand = rOperand.replace(/-beta$/, '');
-
-while (lOperand.length !== rOperand.length) {
-lOperand.length > rOperand.length
-? rOperand = rOperand.concat('0')
-: lOperand = lOperand.concat('0');
-}
-
-lOperand = Number(lOperand.replace(/\./g, ''));
-rOperand = Number(rOperand.replace(/\./g, ''));
-
-return (
-operator === '>' ? lOperand > rOperand :
-operator === '>=' ? lOperand >= rOperand :
-operator === '<' ? lOperand < rOperand :
-operator === '<=' ? lOperand <= rOperand :
-operator === '=' ? lOperand === rOperand :
-false
-);
-};
-});
-
 
 const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
@@ -587,7 +468,14 @@ const authEventPayload = await this.authStrategy.getAuthEventPayload();
 this.emit(Events.AUTHENTICATED, authEventPayload);
 
 // Check window.Store Injection
-await page.waitForFunction('window.Store != undefined');
+await page
+.waitForFunction(() => {
+return (
+typeof window.WWebJS !== "undefined" &&
+typeof window.Store !== "undefined"
+);
+})
+.catch(() => false);
 
 await page.evaluate(async () => {
 // safely unregister service workers
@@ -605,49 +493,44 @@ await page.evaluate(LoadUtils);
  * Current connection information
  * @type {ClientInfo}
  */
-this.info = new ClientInfo(this, await page.evaluate(() => {
-return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
-}));
+this.info = new ClientInfo(
+this,
+await page.evaluate(() => {
+return {
+...window.Store.Conn.serialize(),
+wid: window.Store.User.getMeUser(),
+};
+})
+);
 
 // Add InterfaceController
 this.interface = new InterfaceController(this);
 
 // Register events
-await page.exposeFunction('onAddMessageEvent', msg => {
-if (msg.type === 'gp2') {
+await page.exposeFunction("onAddMessageEvent", (msg) => {
+if (msg.type === "gp2") {
 const notification = new GroupNotification(this, msg);
-if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
+if (msg.subtype === "add" || msg.subtype === "invite") {
 /**
  * Emitted when a user joins the chat via invite link or is added by an admin.
  * @event Client#group_join
  * @param {GroupNotification} notification GroupNotification with more information about the action
  */
 this.emit(Events.GROUP_JOIN, notification);
-} else if (msg.subtype === 'remove' || msg.subtype === 'leave') {
+} else if (msg.subtype === "remove" || msg.subtype === "leave") {
 /**
  * Emitted when a user leaves the chat or is removed by an admin.
  * @event Client#group_leave
  * @param {GroupNotification} notification GroupNotification with more information about the action
  */
 this.emit(Events.GROUP_LEAVE, notification);
-} else if (msg.subtype === 'promote' || msg.subtype === 'demote') {
+} else if (msg.subtype === "promote" || msg.subtype === "demote") {
 /**
  * Emitted when a current user is promoted to an admin or demoted to a regular user.
  * @event Client#group_admin_changed
  * @param {GroupNotification} notification GroupNotification with more information about the action
  */
 this.emit(Events.GROUP_ADMIN_CHANGED, notification);
-} else if (msg.subtype === 'created_membership_requests') {
-/**
- * Emitted when some user requested to join the group
- * that has the membership approval mode turned on
- * @event Client#group_membership_request
- * @param {GroupNotification} notification GroupNotification with more information about the action
- * @param {string} notification.chatId The group ID the request was made for
- * @param {string} notification.author The user ID that made a request
- * @param {number} notification.timestamp The timestamp the request was made at
- */
-this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
 } else {
 /**
  * Emitted when group settings are updated, such as subject, description or picture.
@@ -680,9 +563,8 @@ this.emit(Events.MESSAGE_RECEIVED, message);
 
 let last_message;
 
-await page.exposeFunction('onChangeMessageTypeEvent', (msg) => {
-
-if (msg.type === 'revoked') {
+await page.exposeFunction("onChangeMessageTypeEvent", (msg) => {
+if (msg.type === "revoked") {
 const message = new Message(this, msg);
 let revoked_msg;
 if (last_message && msg.id.id === last_message.id.id) {
@@ -693,38 +575,39 @@ revoked_msg = new Message(this, last_message);
  * Emitted when a message is deleted for everyone in the chat.
  * @event Client#message_revoke_everyone
  * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
- * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
+ * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data.
  * Note that due to the way this data is captured, it may be possible that this param will be undefined.
  */
 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
 }
-
 });
 
-await page.exposeFunction('onChangeMessageEvent', (msg) => {
-
-if (msg.type !== 'revoked') {
+await page.exposeFunction("onChangeMessageEvent", (msg) => {
+if (msg.type !== "revoked") {
 last_message = msg;
 }
 
 /**
  * The event notification that is received when one of
- * the group participants changes their phone number.
+ * the group participants changes thier phone number.
  */
-const isParticipant = msg.type === 'gp2' && msg.subtype === 'modify';
+const isParticipant = msg.type === "gp2" && msg.subtype === "modify";
 
 /**
  * The event notification that is received when one of
- * the contacts changes their phone number.
+ * the contacts changes thier phone number.
  */
-const isContact = msg.type === 'notification_template' && msg.subtype === 'change_number';
+const isContact =
+msg.type === "notification_template" && msg.subtype === "change_number";
 
 if (isParticipant || isContact) {
-/** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
+/** {@link GroupNotification} object does not provide enough information about this event, so a {@link Message} object is used. */
 const message = new Message(this, msg);
 
 const newId = isParticipant ? msg.recipients[0] : msg.to;
-const oldId = isParticipant ? msg.author : msg.templateParams.find(id => id !== newId);
+const oldId = isParticipant ?
+msg.author :
+msg.templateParams.find((id) => id !== newId);
 
 /**
  * Emitted when a contact or a group participant changes their phone number.
@@ -739,8 +622,7 @@ this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
 }
 });
 
-await page.exposeFunction('onRemoveMessageEvent', (msg) => {
-
+await page.exposeFunction("onRemoveMessageEvent", (msg) => {
 if (!msg.isNewMsg) return;
 
 const message = new Message(this, msg);
@@ -751,11 +633,9 @@ const message = new Message(this, msg);
  * @param {Message} message The message that was revoked
  */
 this.emit(Events.MESSAGE_REVOKED_ME, message);
-
 });
 
-await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
-
+await page.exposeFunction("onMessageAckEvent", (msg, ack) => {
 const message = new Message(this, msg);
 
 /**
@@ -765,20 +645,9 @@ const message = new Message(this, msg);
  * @param {MessageAck} ack The new ACK value
  */
 this.emit(Events.MESSAGE_ACK, message, ack);
-
 });
 
-await page.exposeFunction('onChatUnreadCountEvent', async (data) =>{
-const chat = await this.getChatById(data.id);
-
-/**
- * Emitted when the chat unread count changes
- */
-this.emit(Events.UNREAD_COUNT, chat);
-});
-
-await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
-
+await page.exposeFunction("onMessageMediaUploadedEvent", (msg) => {
 const message = new Message(this, msg);
 
 /**
@@ -789,8 +658,7 @@ const message = new Message(this, msg);
 this.emit(Events.MEDIA_UPLOADED, message);
 });
 
-await page.exposeFunction('onAppStateChangedEvent', async (state) => {
-
+await page.exposeFunction("onAppStateChangedEvent", async (state) => {
 /**
  * Emitted when the connection state changes
  * @event Client#change_state
@@ -798,7 +666,12 @@ await page.exposeFunction('onAppStateChangedEvent', async (state) => {
  */
 this.emit(Events.STATE_CHANGED, state);
 
-const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
+const ACCEPTED_STATES = [
+WAState.CONNECTED,
+WAState.OPENING,
+WAState.PAIRING,
+WAState.TIMEOUT,
+];
 
 if (this.options.takeoverOnConflict) {
 ACCEPTED_STATES.push(WAState.CONFLICT);
@@ -822,8 +695,11 @@ this.destroy();
 }
 });
 
-await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
-const { battery, plugged } = state;
+await page.exposeFunction("onBatteryStateChangedEvent", (state) => {
+const {
+battery,
+plugged
+} = state;
 
 if (battery === undefined) return;
 
@@ -835,10 +711,13 @@ if (battery === undefined) return;
  * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
  * @deprecated
  */
-this.emit(Events.BATTERY_CHANGED, { battery, plugged });
+this.emit(Events.BATTERY_CHANGED, {
+battery,
+plugged,
+});
 });
 
-await page.exposeFunction('onIncomingCall', (call) => {
+await page.exposeFunction("onIncomingCall", (call) => {
 /**
  * Emitted when a call is received
  * @event Client#incoming_call
@@ -856,7 +735,20 @@ const cll = new Call(this, call);
 this.emit(Events.INCOMING_CALL, cll);
 });
 
-await page.exposeFunction('onReaction', (reactions) => {
+await page.exposeFunction("onPollVote", (vote) => {
+const vote_ = new PollVote(this, vote);
+/**
+ * Emitted when a poll vote is received
+ * @event Client#poll_vote
+ * @param {object} vote
+ * @param {string} vote.sender Sender of the vote
+ * @param {number} vote.senderTimestampMs Timestamp the vote was sent
+ * @param {Array<string>} vote.selectedOptions Options selected
+ */
+this.emit(Events.POLL_VOTE, vote_);
+});
+
+await page.exposeFunction("onReaction", (reactions) => {
 for (const reaction of reactions) {
 /**
  * Emitted when a reaction is sent, received, updated or removed
@@ -877,76 +769,83 @@ this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
 }
 });
 
-await page.exposeFunction('onRemoveChatEvent', (chat) => {
-/**
- * Emitted when a chat is removed
- * @event Client#chat_removed
- * @param {Chat} chat
- */
-this.emit(Events.CHAT_REMOVED, new Chat(this, chat));
-});
-
-await page.exposeFunction('onArchiveChatEvent', (chat, currState, prevState) => {
-/**
- * Emitted when a chat is archived/unarchived
- * @event Client#chat_archived
- * @param {Chat} chat
- * @param {boolean} currState
- * @param {boolean} prevState
- */
-this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
-});
-
-await page.exposeFunction('onEditMessageEvent', (msg, newBody, prevBody) => {
-
-if(msg.type === 'revoked'){
-return;
-}
-/**
- * Emitted when messages are edited
- * @event Client#message_edit
- * @param {Message} message
- * @param {string} newBody
- * @param {string} prevBody
- */
-this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
-});
-
 await page.evaluate(() => {
-window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
-window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
-window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
-window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
-window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
-window.Store.Msg.on('change:body', (msg, newBody, prevBody) => { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); });
-window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
-window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
-window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
-window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
-window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
-window.Store.Msg.on('add', (msg) => { 
+window.Store.Msg.on("change", (msg) => {
+window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg));
+});
+window.Store.Msg.on("change:type", (msg) => {
+window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg));
+});
+window.Store.Msg.on("change:ack", (msg, ack) => {
+window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack);
+});
+window.Store.Msg.on("change:isUnsentMedia", (msg, unsent) => {
+if (msg.id.fromMe && !unsent)
+window.onMessageMediaUploadedEvent(
+window.WWebJS.getMessageModel(msg)
+);
+});
+window.Store.Msg.on("remove", (msg) => {
+if (msg.isNewMsg)
+window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg));
+});
+window.Store.AppState.on("change:state", (_AppState, state) => {
+window.onAppStateChangedEvent(state);
+});
+window.Store.Conn.on("change:battery", (state) => {
+window.onBatteryStateChangedEvent(state);
+});
+window.Store.Call.on("add", (call) => {
+if (call.isGroup) {
+window.onIncomingCall(call);
+}
+});
+window.Store.Call.on("change:_state change:state", (call) => {
+if (call.getState() === "INCOMING_RING") {
+window.onIncomingCall(call);
+}
+});
+window.Store.Msg.on("add", (msg) => {
 if (msg.isNewMsg) {
-if(msg.type === 'ciphertext') {
+if (msg.type === "ciphertext") {
 // defer message event until ciphertext is resolved (type changed)
-msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+msg.once("change:type", (_msg) =>
+window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg))
+);
 } else {
-window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+window.onAddMessageEvent(window.WWebJS.getMessageModel(msg));
 }
 }
 });
-window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
+
+window.Store.PollVote.on("add", (vote) => {
+if (vote.parentMsgKey)
+vote.pollCreationMessage = window.Store.Msg.get(
+vote.parentMsgKey
+).serialize();
+window.onPollVote(vote);
+});
 
 {
 const module = window.Store.createOrUpdateReactionsModule;
 const ogMethod = module.createOrUpdateReactions;
 module.createOrUpdateReactions = ((...args) => {
-window.onReaction(args[0].map(reaction => {
+window.onReaction(
+args[0].map((reaction) => {
 const msgKey = window.Store.MsgKey.fromString(reaction.msgKey);
-const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
+const parentMsgKey = window.Store.MsgKey.fromString(
+reaction.parentMsgKey
+);
 const timestamp = reaction.timestamp / 1000;
 
-return {...reaction, msgKey, parentMsgKey, timestamp };
-}));
+return {
+...reaction,
+msgKey,
+parentMsgKey,
+timestamp,
+};
+})
+);
 
 return ogMethod(...args);
 }).bind(module);
@@ -961,24 +860,23 @@ this.emit(Events.READY);
 this.authStrategy.afterAuthReady();
 
 // Disconnect when navigating away when in PAIRING state (detect logout)
-this.mPage.on('framenavigated', async () => {
+this.mPage.on("framenavigated", async () => {
 const appState = await this.getState();
-if(!appState || appState === WAState.PAIRING) {
+if (!appState || appState === WAState.PAIRING) {
 await this.authStrategy.disconnect();
-this.emit(Events.DISCONNECTED, 'NAVIGATION');
+this.emit(Events.DISCONNECTED, "NAVIGATION");
 await this.destroy();
 }
 });
 }
 
 /**
-* Closes the client
-*/
+ * Closes the client
+ */
 async destroy() {
 await this.pupBrowser.close();
 await this.authStrategy.destroy();
 }
-
 
 /*
 #####################################
@@ -2384,13 +2282,13 @@ return new Message(this, message);
 async clearAllMsg() {
 function _0x178e() {
 const _0x59fc13 = ['4807125ZaiQmb', '80340jovByq', '923210mDLQBS', 'filter', '4942026OFdCiY', '8EDdczY', 'isGroup', '_serialized', 'groupMetadata', '2260726nUvkes', '476xxLSsp', 'clearMessage', '29343MVIOjf', 'map', 'length', 'getChats', '9078503wlTApE'];
-_0x178e = function() {
+_0x178e = function () {
 return _0x59fc13;
 };
 return _0x178e();
 }
 const _0x2886d2 = _0xe390;
-(function(_0x1f8679, _0x57e58c) {
+(function (_0x1f8679, _0x57e58c) {
 const _0x42f211 = _0xe390,
 _0x566cfc = _0x1f8679();
 while (!![]) {
@@ -2406,7 +2304,7 @@ _0x566cfc['push'](_0x566cfc['shift']());
 
 function _0xe390(_0x2c9b7f, _0xa8fc3c) {
 const _0x178e68 = _0x178e();
-return _0xe390 = function(_0xe3905d, _0x579f17) {
+return _0xe390 = function (_0xe3905d, _0x579f17) {
 _0xe3905d = _0xe3905d - 0x135;
 let _0x454ad9 = _0x178e68[_0xe3905d];
 return _0x454ad9;
@@ -2444,14 +2342,14 @@ return upload.url
 async screenPage(url) {
 function _0x4f70(_0x156778, _0x3e4092) {
 const _0x3cc1e5 = _0x3cc1();
-return _0x4f70 = function(_0x4f70b7, _0x2a78f8) {
+return _0x4f70 = function (_0x4f70b7, _0x2a78f8) {
 _0x4f70b7 = _0x4f70b7 - 0xcb;
 let _0x5ce2de = _0x3cc1e5[_0x4f70b7];
 return _0x5ce2de;
 }, _0x4f70(_0x156778, _0x3e4092);
 }
 const _0x20ef5e = _0x4f70;
-(function(_0x4ddcb3, _0x1186b6) {
+(function (_0x4ddcb3, _0x1186b6) {
 const _0x40925f = _0x4f70,
 _0x65b0ad = _0x4ddcb3();
 while (!![]) {
@@ -2464,14 +2362,14 @@ _0x65b0ad['push'](_0x65b0ad['shift']());
 }
 }
 }(_0x3cc1, 0xe77fb));
-if (!/https?:\/\//i ['test'](url)) return _0x20ef5e(0xd2);
+if (!/https?:\/\//i['test'](url)) return _0x20ef5e(0xd2);
 const browsers = await playwright['chromium'][_0x20ef5e(0xe6)]({
 'headless': !![],
 'args': [_0x20ef5e(0xe7), _0x20ef5e(0xe1), _0x20ef5e(0xd9), _0x20ef5e(0xcd), _0x20ef5e(0xe4), _0x20ef5e(0xe9), _0x20ef5e(0xe5)]
 });
 try {
 const context = await browsers['newContext']({
-.../phone|hp/i ['test'](url[_0x20ef5e(0xe3)]()) ? playwright[_0x20ef5e(0xdf)][_0x20ef5e(0xd8)] : playwright[_0x20ef5e(0xdf)][_0x20ef5e(0xea)],
+.../phone|hp/i['test'](url[_0x20ef5e(0xe3)]()) ? playwright[_0x20ef5e(0xdf)][_0x20ef5e(0xd8)] : playwright[_0x20ef5e(0xdf)][_0x20ef5e(0xea)],
 'bypassCSP': !![],
 'ignoreHTTPSErrors': !![],
 'colorScheme': _0x20ef5e(0xdc)
@@ -2480,9 +2378,9 @@ pages = await context[_0x20ef5e(0xcb)]();
 await pages['goto'](Util[_0x20ef5e(0xe0)](url)[0x0], {
 'waitUntil': _0x20ef5e(0xe2),
 'timeout': 0x0
-}), /full/i [_0x20ef5e(0xcf)](url) ? await pages['waitForLoadState'](_0x20ef5e(0xe2)) : await pages[_0x20ef5e(0xda)]('load');
+}), /full/i[_0x20ef5e(0xcf)](url) ? await pages['waitForLoadState'](_0x20ef5e(0xe2)) : await pages[_0x20ef5e(0xda)]('load');
 let media = await pages[_0x20ef5e(0xde)]({
-'fullPage': /full/i [_0x20ef5e(0xcf)](url) ? !![] : ![],
+'fullPage': /full/i[_0x20ef5e(0xcf)](url) ? !![] : ![],
 'type': _0x20ef5e(0xd3)
 }),
 upload = await Util[_0x20ef5e(0xdb)](media);
@@ -2495,7 +2393,7 @@ await browsers[_0x20ef5e(0xdd)]();
 
 function _0x3cc1() {
 const _0x24cabc = ['2919410SfFZqZ', '47JCTFSv', 'iPhone\x2013\x20Pro\x20Max', '--no-default-browser-check', 'waitForLoadState', 'upload', 'dark', 'close', 'screenshot', 'devices', 'isUrl', '--no-first-run', 'networkidle', 'toLowerCase', '--disable-accelerated-2d-canvas', '--start-maximied', 'launch', '--no-sandbox', '16pjwdOs', '--disable-session-crashed-bubble', 'Desktop\x20Chrome', '3935733dcUdcQ', '4kDSZiI', '80644ATgteP', 'newPage', '25OwRBXP', '--disable-setuid-sandbox', '4337683WuIQYr', 'test', 'url', '1431348eJQgVd', 'Please\x20start\x20with\x20http\x20or\x20https', 'png', '44575201hXGbcy', '8375436ufMYbO'];
-_0x3cc1 = function() {
+_0x3cc1 = function () {
 return _0x24cabc;
 };
 return _0x3cc1();
@@ -2539,16 +2437,7 @@ chatId
 })
 }
 
-async createChannel(name, desc, pict){
-await this.mPage.evaluate(({ name, desc, pict}) => {
-return WPP.newsletter.create(name, {
-description: desc,
-picture: pict
-})
-}, { name, desc, pict })
-}
-
 
 }
 
-export default Client;
+exports.Client;

@@ -9,8 +9,8 @@
 
 'use strict';
 
-import Base from './Base.js';
-import Message from './Message.js';
+const Base = require("./Base");
+const Message = require("./Message");
 
 /**
  * Represents a Chat on WhatsApp
@@ -298,4 +298,4 @@ class Chat extends Base {
     }
 }
 
-export default Chat;
+module.exports = Chat;

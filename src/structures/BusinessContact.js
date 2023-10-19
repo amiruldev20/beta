@@ -9,7 +9,7 @@
 
 'use strict';
 
-import Contact from "./Contact.js";
+const Contact = require('./Contact');
 
 /**
  * Represents a Business Contact on WhatsApp

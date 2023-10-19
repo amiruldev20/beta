@@ -39,4 +39,4 @@ class Location {
     }
 }
 
-export default Location
+module.exports = Location;

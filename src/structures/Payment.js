@@ -7,7 +7,7 @@
  * ig: amirul.dev
  */
 
-import Base from './Base.js'
+const Base = require('./Base');
 
 class Payment extends Base {
     constructor(client, data) {
@@ -78,10 +78,10 @@ class Payment extends Base {
          * The note sent with the payment
          * @type {string}
          */
-        this.paymentNote = !data.paymentNoteMsg ? undefined : data.paymentNoteMsg.body ?  data.paymentNoteMsg.body : undefined ;
+        this.paymentNote = !data.paymentNoteMsg ? undefined : data.paymentNoteMsg.body ? data.paymentNoteMsg.body : undefined;
 
         return super._patch(data);
     }
 }
 
-export default Payment;
+module.exports = Payment;

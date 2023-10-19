@@ -8,9 +8,8 @@
  */
 
 'use strict';
-
-import Base from './Base.js';
-import Product from './Product.js';
+const Base = require('./Base');
+const Product = require('./Product');
 
 /**
  * Represents a Order on WhatsApp
@@ -56,4 +55,4 @@ class Order extends Base {
     }
 }
 
-export default Order;
+module.exports = Order;

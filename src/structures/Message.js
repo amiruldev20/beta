@@ -8,15 +8,15 @@
  */
 "use strict";
 
-import Base from "./Base.js";
-import MessageMedia from "./MessageMedia.js";
-import Location from "./Location.js";
-import Order from "./Order.js";
-import Payment from "./Payment.js";
-import {
-    MessageTypes
-} from "../util/Constants.js";
-import PollVote from "./PollVote.js";
+const Base = require('./Base');
+const MessageMedia = require('./MessageMedia');
+const Location = require('./Location');
+const Order = require('./Order');
+const Payment = require('./Payment');
+const Reaction = require('./Reaction');
+const {MessageTypes} = require('../util/Constants');
+const {Contact} = require('./Contact');
+const PollVote = require('./PollVote')
 
 /**
  * Represents a Message on WhatsApp
@@ -689,4 +689,4 @@ class Message extends Base {
     }
 }
 
-export default Message;
+module.exports = Message;

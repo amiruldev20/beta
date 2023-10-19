@@ -9,7 +9,7 @@
 
 'use strict';
 
-import Chat from './Chat.js';
+const Chat = require('./Chat');
 
 /**
  * Represents a Private Chat on WhatsApp
@@ -19,4 +19,4 @@ class PrivateChat extends Chat {
 
 }
 
-export default PrivateChat;
+module.exports = PrivateChat;

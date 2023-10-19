@@ -9,7 +9,7 @@
 
 'use strict';
 
-import Base from './Base.js';
+const Base = require('./Base');
 
 /**
  * ID that represents a contact
@@ -27,7 +27,7 @@ class Contact extends Base {
     constructor(client, data) {
         super(client);
 
-        if(data) this._patch(data);
+        if (data) this._patch(data);
     }
 
     _patch(data) {
@@ -117,7 +117,7 @@ class Contact extends Base {
          * @type {boolean}
          */
         this.isBlocked = data.isBlocked;
-        
+
         return super._patch(data);
     }
 
@@ -136,7 +136,7 @@ class Contact extends Base {
     async getFormattedNumber() {
         return await this.client.getFormattedNumber(this.id._serialized);
     }
-    
+
     /**
      * Returns the contact's countrycode, (1541859685@c.us) => (1)
      * @returns {Promise<string>}
@@ -144,14 +144,14 @@ class Contact extends Base {
     async getCountryCode() {
         return await this.client.getCountryCode(this.id._serialized);
     }
-    
+
     /**
      * Returns the Chat that corresponds to this Contact. 
      * Will return null when getting chat for currently logged in user.
      * @returns {Promise<Chat>}
      */
     async getChat() {
-        if(this.isMe) return null;
+        if (this.isMe) return null;
 
         return await this.client.getChatById(this.id._serialized);
     }
@@ -161,7 +161,7 @@ class Contact extends Base {
      * @returns {Promise<boolean>}
      */
     async block() {
-        if(this.isGroup) return false;
+        if (this.isGroup) return false;
 
         await this.client.mPage.evaluate(async (contactId) => {
             const contact = window.Store.Contact.get(contactId);
@@ -176,7 +176,7 @@ class Contact extends Base {
      * @returns {Promise<boolean>}
      */
     async unblock() {
-        if(this.isGroup) return false;
+        if (this.isGroup) return false;
 
         await this.client.mPage.evaluate(async (contactId) => {
             const contact = window.Store.Contact.get(contactId);
@@ -209,7 +209,7 @@ class Contact extends Base {
     async getCommonGroups() {
         return await this.client.getCommonGroups(this.id._serialized);
     }
-    
+
 }
 
-export default Contact;
+module.exports = Contact;

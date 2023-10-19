@@ -9,7 +9,7 @@
 
 'use strict';
 
-import Chat from './Chat.js';
+const Chat = require('./Chat');
 
 /**
  * Group participant information
@@ -441,4 +441,4 @@ class GroupChat extends Chat {
     }
 }
 
-export default GroupChat
+module.exports = GroupChat;

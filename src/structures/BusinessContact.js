@@ -27,4 +27,4 @@ class BusinessContact extends Contact {
 
 }
 
-export default BusinessContact;
+module.exports = BusinessContact;

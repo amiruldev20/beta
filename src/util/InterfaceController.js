@@ -60,7 +60,7 @@ class InterfaceController {
         await this.mPage.evaluate(async msgId => {
             let msg = await window.Store.Msg.get(msgId);
             let chat = await window.Store.Chat.find(msg.id.remote);
-            let searchContext = await window.Store.SearchContext(chat,msg);
+            let searchContext = await window.Store.SearchContext(chat, msg);
             await window.Store.Cmd.openChatAt(chat, searchContext);
         }, msgId);
     }
@@ -90,7 +90,7 @@ class InterfaceController {
      */
     async getFeatures() {
         return await this.mPage.evaluate(() => {
-            if(!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
+            if (!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
             return window.Store.Features.F;
         });
     }
@@ -101,7 +101,7 @@ class InterfaceController {
      */
     async checkFeatureStatus(feature) {
         return await this.mPage.evaluate((feature) => {
-            if(!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
+            if (!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
             return window.Store.Features.supportsFeature(feature);
         }, feature);
     }
@@ -112,7 +112,7 @@ class InterfaceController {
      */
     async enableFeatures(features) {
         await this.mPage.evaluate((features) => {
-            if(!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
+            if (!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
             for (const feature in features) {
                 window.Store.Features.setFeature(features[feature], true);
             }
@@ -125,7 +125,7 @@ class InterfaceController {
      */
     async disableFeatures(features) {
         await this.mPage.evaluate((features) => {
-            if(!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
+            if (!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
             for (const feature in features) {
                 window.Store.Features.setFeature(features[feature], false);
             }
@@ -133,4 +133,4 @@ class InterfaceController {
     }
 }
 
-export default InterfaceController
+module.exports = InterfaceController;

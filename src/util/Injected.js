@@ -9,7 +9,7 @@
 "use strict";
 
 // Exposes the internal Store to the WhatsApp Web client
-export const ExposeStore = (moduleRaidStr) => {
+exports.ExposeStore = (moduleRaidStr) => {
     eval("var moduleRaid = " + moduleRaidStr);
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
@@ -64,11 +64,11 @@ export const ExposeStore = (moduleRaidStr) => {
     )[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) =>
         module.default &&
-        module.default.prototype &&
-        module.default.prototype.isServer &&
-        module.default.prototype.isUser ?
-        module.default :
-        null
+            module.default.prototype &&
+            module.default.prototype.isServer &&
+            module.default.prototype.isUser ?
+            module.default :
+            null
     )[0].default;
     window.Store.Validators = window.mR.findModule("findLinks")[0];
     window.Store.VCard = window.mR.findModule("vcardFromContactModel")[0];
@@ -223,10 +223,10 @@ export const ExposeStore = (moduleRaidStr) => {
 
     // Modify functions
     window.injectToFunction({
-            index: 0,
-            name: "createMsgProtobuf",
-            property: "createMsgProtobuf",
-        },
+        index: 0,
+        name: "createMsgProtobuf",
+        property: "createMsgProtobuf",
+    },
         (func, args) => {
             const [message] = args;
             const proto = func(...args);
@@ -295,8 +295,8 @@ export const ExposeStore = (moduleRaidStr) => {
                         ) {
                             hydratedTemplate.hydratedContentText =
                                 message[found].name && message[found].address ?
-                                `${message[found].name}\n${message[found].address}` :
-                                message[found].name || message[found].address || "";
+                                    `${message[found].name}\n${message[found].address}` :
+                                    message[found].name || message[found].address || "";
                         }
                     }
 
@@ -318,10 +318,10 @@ export const ExposeStore = (moduleRaidStr) => {
 
     setTimeout(() => {
         window.injectToFunction({
-                index: 0,
-                name: "createMsgProtobuf",
-                property: "createMsgProtobuf",
-            },
+            index: 0,
+            name: "createMsgProtobuf",
+            property: "createMsgProtobuf",
+        },
             (func, args) => {
                 const proto = func(...args);
                 if (proto.templateMessage) {
@@ -358,10 +358,10 @@ export const ExposeStore = (moduleRaidStr) => {
     }, 100);
 
     window.injectToFunction({
-            index: 0,
-            name: "typeAttributeFromProtobuf",
-            property: "typeAttributeFromProtobuf",
-        },
+        index: 0,
+        name: "typeAttributeFromProtobuf",
+        property: "typeAttributeFromProtobuf",
+    },
         function callback(func, args) {
             const [proto] = args;
 
@@ -414,10 +414,10 @@ export const ExposeStore = (moduleRaidStr) => {
     );
 
     window.injectToFunction({
-            index: 0,
-            name: "mediaTypeFromProtobuf",
-            property: "mediaTypeFromProtobuf",
-        },
+        index: 0,
+        name: "mediaTypeFromProtobuf",
+        property: "mediaTypeFromProtobuf",
+    },
         (func, args) => {
             const [proto] = args;
             if (proto.templateMessage?.hydratedTemplate) {
@@ -428,10 +428,10 @@ export const ExposeStore = (moduleRaidStr) => {
     );
 
     window.injectToFunction({
-            index: 0,
-            name: "encodeMaybeMediaType",
-            property: "encodeMaybeMediaType",
-        },
+        index: 0,
+        name: "encodeMaybeMediaType",
+        property: "encodeMaybeMediaType",
+    },
         (func, args) => {
             const [type] = args;
             if (type === "button") {
@@ -442,10 +442,10 @@ export const ExposeStore = (moduleRaidStr) => {
     );
 
     window.injectToFunction({
-            index: 0,
-            name: "encodeStanza",
-            property: "encodeStanza",
-        },
+        index: 0,
+        name: "encodeStanza",
+        property: "encodeStanza",
+    },
         (func, args) => {
             if (args[0].tag == "message") {
                 if (window.WWebJS.pendingBypass.find((a) => a.id == args[0].attrs.id)) {
@@ -487,10 +487,10 @@ export const ExposeStore = (moduleRaidStr) => {
     );
 
     window.injectToFunction({
-            index: 0,
-            name: "createFanoutMsgStanza",
-            property: "createFanoutMsgStanza",
-        },
+        index: 0,
+        name: "createFanoutMsgStanza",
+        property: "createFanoutMsgStanza",
+    },
         async (func, args) => {
             const [, proto] = args;
 
@@ -520,8 +520,8 @@ export const ExposeStore = (moduleRaidStr) => {
             if (!bizNode) {
                 bizNode = window.Store.WebSocket.smax(
                     "biz", {
-                        native_flow_name: "wa_payment_learn_more"
-                    },
+                    native_flow_name: "wa_payment_learn_more"
+                },
                     null
                 );
                 content.push(bizNode);
@@ -571,7 +571,7 @@ export const ExposeStore = (moduleRaidStr) => {
     }
 };
 
-export const LoadUtils = () => {
+exports.LoadUtils = () => {
     window.WWebJS = {
         ...WPP
     };
@@ -637,8 +637,8 @@ export const LoadUtils = () => {
             if (typeof options.quoted === "object")
                 quotedMsg = window.Store.Msg.get(
                     options.quoted.id ?
-                    options.quoted.id._serialized :
-                    options.quoted._serialized
+                        options.quoted.id._serialized :
+                        options.quoted._serialized
                 );
 
             quotedMsg = quotedMsg.msgContextInfo(chat.id);
@@ -740,10 +740,10 @@ export const LoadUtils = () => {
         returnObject.replyButtons.add(
             returnObject.dynamicReplyButtons.map(
                 (button) =>
-                new window.Store.ReplyButtonModel({
-                    id: button.buttonId,
-                    displayText: button.buttonText?.displayText || undefined,
-                })
+                    new window.Store.ReplyButtonModel({
+                        id: button.buttonId,
+                        displayText: button.buttonText?.displayText || undefined,
+                    })
             )
         );
 
@@ -1351,10 +1351,10 @@ export const LoadUtils = () => {
         let userId = window.Store.User.getMaybeMeUser().user + "@s.whatsapp.net";
         const stanza = window.Store.SocketWap.wap(
             "call", {
-                id: window.Store.SocketWap.generateId(),
-                from: window.Store.SocketWap.USER_JID(userId),
-                to: window.Store.SocketWap.USER_JID(peerJid),
-            },
+            id: window.Store.SocketWap.generateId(),
+            from: window.Store.SocketWap.USER_JID(userId),
+            to: window.Store.SocketWap.USER_JID(peerJid),
+        },
             [
                 window.Store.SocketWap.wap("reject", {
                     "call-id": id,
@@ -1386,11 +1386,11 @@ export const LoadUtils = () => {
             delete options.mimetype;
 
         options = Object.assign({
-                size: 720,
-                mimetype: media.mimetype,
-                quality: 0.75,
-                asDataUrl: false
-            },
+            size: 720,
+            mimetype: media.mimetype,
+            quality: 0.75,
+            asDataUrl: false
+        },
             options
         );
 
@@ -1425,28 +1425,28 @@ export const LoadUtils = () => {
     window.WWebJS.setPicture = async (chatid, media, type = "normal") => {
         const thumbnail =
             type === "long" ?
-            await window.WWebJS.cropAndResizeImage(media, {
-                asDataUrl: true,
-                mimetype: "image/jpeg",
-                size: 120,
-            }) :
-            await window.WWebJS.cropAndResizeImage(media, {
-                asDataUrl: true,
-                mimetype: "image/jpeg",
-                size: 96,
-            });
+                await window.WWebJS.cropAndResizeImage(media, {
+                    asDataUrl: true,
+                    mimetype: "image/jpeg",
+                    size: 120,
+                }) :
+                await window.WWebJS.cropAndResizeImage(media, {
+                    asDataUrl: true,
+                    mimetype: "image/jpeg",
+                    size: 96,
+                });
         const profilePic =
             type === "long" ?
-            await window.WWebJS.cropAndResizeImage(media, {
-                asDataUrl: true,
-                mimetype: "image/jpeg",
-                size: 720,
-            }) :
-            await window.WWebJS.cropAndResizeImage(media, {
-                asDataUrl: true,
-                mimetype: "image/jpeg",
-                size: 640,
-            });
+                await window.WWebJS.cropAndResizeImage(media, {
+                    asDataUrl: true,
+                    mimetype: "image/jpeg",
+                    size: 720,
+                }) :
+                await window.WWebJS.cropAndResizeImage(media, {
+                    asDataUrl: true,
+                    mimetype: "image/jpeg",
+                    size: 640,
+                });
 
         const chatWid = window.Store.WidFactory.createWid(chatid);
         try {
@@ -1517,12 +1517,12 @@ export const LoadUtils = () => {
     window.WWebJS.downloadFile = async (url) => {
         return new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
-            xhr.onload = function() {
+            xhr.onload = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
                         let reader = new FileReader();
                         reader.readAsDataURL(xhr.response);
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             resolve(reader.result.substr(reader.result.indexOf(",") + 1));
                         };
                     } else {
@@ -1553,7 +1553,7 @@ export const LoadUtils = () => {
         const _readImageAsBase64 = (imageBlob) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
-                reader.onloadend = function() {
+                reader.onloadend = function () {
                     const base64Image = reader.result;
                     if (base64Image == null) {
                         resolve(undefined);
@@ -1577,7 +1577,8 @@ export const LoadUtils = () => {
                     }
                 }
             } catch (error) {
-                /* empty */ }
+                /* empty */
+}
         }
         return undefined;
     };
@@ -1596,15 +1597,15 @@ export const LoadUtils = () => {
 
         const participantArgs =
             participantLidArgs.lid ?
-            [{
-                participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.lid),
-                phoneNumberMixinArgs: {
-                    anyPhoneNumber: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-                }
-            }] :
-            [{
-                participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-            }];
+                [{
+                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.lid),
+                    phoneNumberMixinArgs: {
+                        anyPhoneNumber: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
+                    }
+                }] :
+                [{
+                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
+                }];
 
         let result, participant;
         const data = {

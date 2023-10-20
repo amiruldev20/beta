@@ -253,62 +253,202 @@ class Client extends EventEmitter {
         return;
       }
 
+      // start login QR
       const loginQR = async () => {
-      const QR_CONTAINER = "div[data-ref]";
-      const QR_RETRY_BUTTON = "div[data-ref] > span > button";
-      let qrRetries = 0;
-      await page.exposeFunction("qrChanged", async (qr) => {
-        /**
-         * Emitted when a QR code is received
-         * @event Client#qr
-         * @param {string} qr QR Code
-         */
-        this.emit(Events.QR_RECEIVED, qr);
-        if (this.options.qrMaxRetries > 0) {
-          qrRetries++;
-          if (qrRetries > this.options.qrMaxRetries) {
-            this.emit(Events.DISCONNECTED, "Max qrcode retries reached");
-            await this.destroy();
+        const QR_CONTAINER = "div[data-ref]";
+        const QR_RETRY_BUTTON = "div[data-ref] > span > button";
+        let qrRetries = 0;
+        await page.exposeFunction("qrChanged", async (qr) => {
+          /**
+           * Emitted when a QR code is received
+           * @event Client#qr
+           * @param {string} qr QR Code
+           */
+          this.emit(Events.QR_RECEIVED, qr);
+          if (this.options.qrMaxRetries > 0) {
+            qrRetries++;
+            if (qrRetries > this.options.qrMaxRetries) {
+              this.emit(Events.DISCONNECTED, "Max qrcode retries reached");
+              await this.destroy();
+            }
           }
-        }
-      });
+        });
 
-      await page.evaluate(
-        function (selectors) {
-          const qr_container = document.querySelector(selectors.QR_CONTAINER);
-          window.qrChanged(qr_container.dataset.ref);
+        await page.evaluate(
+          function (selectors) {
+            const qr_container = document.querySelector(selectors.QR_CONTAINER);
+            window.qrChanged(qr_container.dataset.ref);
 
-          const obs = new MutationObserver((muts) => {
-            muts.forEach((mut) => {
-              // Listens to qr token change
-              if (
-                mut.type === "attributes" &&
-                mut.attributeName === "data-ref"
-              ) {
-                window.qrChanged(mut.target.dataset.ref);
-              }
-              // Listens to retry button, when found, click it
-              else if (mut.type === "childList") {
-                const retry_button = document.querySelector(
-                  selectors.QR_RETRY_BUTTON
-                );
-                if (retry_button) retry_button.click();
+            const obs = new MutationObserver((muts) => {
+              muts.forEach((mut) => {
+                // Listens to qr token change
+                if (
+                  mut.type === "attributes" &&
+                  mut.attributeName === "data-ref"
+                ) {
+                  window.qrChanged(mut.target.dataset.ref);
+                }
+                // Listens to retry button, when found, click it
+                else if (mut.type === "childList") {
+                  const retry_button = document.querySelector(
+                    selectors.QR_RETRY_BUTTON
+                  );
+                  if (retry_button) retry_button.click();
+                }
+              });
+            });
+            obs.observe(qr_container.parentElement, {
+              subtree: true,
+              childList: true,
+              attributes: true,
+              attributeFilter: ["data-ref"],
+            });
+          },
+          {
+            QR_CONTAINER,
+            QR_RETRY_BUTTON,
+          }
+        );
+      };
+      // end loginQR
+
+      // start login phone
+      const loginPhone = async () => {
+        const LINK_WITH_PHONE_BUTTON = "div._3rDmx div._2rQUO span._3iLTh";
+        const PHONE_NUMBER_INPUT = "input.selectable-text";
+        const NEXT_BUTTON = "div._1M6AF._3QJHf";
+        const CODE_CONTAINER =
+          '[aria-details="link-device-phone-number-code-screen-instructions"]';
+        const GENERATE_NEW_CODE_BUTTON = '[data-testid="popup-controls-ok"]';
+        const LINK_WITH_PHONE_VIEW = "div._1x9Rv._3qC8O";
+
+        await page.exposeFunction("codeChanged", async (code) => {
+          /**
+           * Emitted when a QR code is received
+           * @event Client#code
+           * @param {string} code Code
+           */
+          this.emit(Events.CODE_RECEIVED, code);
+        });
+        const clickOnLinkWithPhoneButton = async () => {
+          await page.waitForSelector(LINK_WITH_PHONE_BUTTON, {
+            timeout: 0,
+          });
+          await page.click(LINK_WITH_PHONE_BUTTON);
+        };
+
+        const typePhoneNumber = async () => {
+          await page.waitForSelector(PHONE_NUMBER_INPUT);
+          const inputValue = await page.$eval(
+            PHONE_NUMBER_INPUT,
+            (el) => el.value
+          );
+          await page.click(PHONE_NUMBER_INPUT);
+          for (let i = 0; i < inputValue.length; i++) {
+            await page.keyboard.press("Backspace");
+          }
+          await page.type(
+            PHONE_NUMBER_INPUT,
+            this.options.linkingMethod.phone.number
+          );
+        };
+
+        await clickOnLinkWithPhoneButton();
+        await typePhoneNumber();
+        await page.click(NEXT_BUTTON);
+
+        await page.evaluate(
+          async function (selectors) {
+            function waitForElementToExist(selector, timeout = 60000) {
+              return new Promise((resolve, reject) => {
+                if (document.querySelector(selector)) {
+                  return resolve(document.querySelector(selector));
+                }
+
+                const observer = new MutationObserver(() => {
+                  if (document.querySelector(selector)) {
+                    resolve(document.querySelector(selector));
+                    observer.disconnect();
+                  }
+                });
+
+                observer.observe(document.body, {
+                  subtree: true,
+                  childList: true,
+                });
+
+                if (timeout > 0) {
+                  setTimeout(() => {
+                    reject(
+                      new Error(
+                        `waitForElementToExist: ${selector} not found in time`
+                      )
+                    );
+                  }, timeout);
+                }
+              });
+            }
+
+            await waitForElementToExist(selectors.CODE_CONTAINER);
+
+            const getCode = () => {
+              const codeContainer = document.querySelector(
+                selectors.CODE_CONTAINER
+              );
+              const code = Array.from(codeContainer.children)[0];
+
+              const cells = Array.from(code.children);
+              return cells.map((cell) => cell.textContent).join("");
+            };
+            let code = getCode();
+            window.codeChanged(code);
+
+            const entirePageObserver = new MutationObserver(() => {
+              const generateNewCodeButton = document.querySelector(
+                selectors.GENERATE_NEW_CODE_BUTTON
+              );
+              if (generateNewCodeButton) {
+                generateNewCodeButton.click();
+                return;
               }
             });
-          });
-          obs.observe(qr_container.parentElement, {
-            subtree: true,
-            childList: true,
-            attributes: true,
-            attributeFilter: ["data-ref"],
-          });
-        },
-        {
-          QR_CONTAINER,
-          QR_RETRY_BUTTON,
-        }
-      );
-      } // end loginQR
+            entirePageObserver.observe(document, {
+              subtree: true,
+              childList: true,
+            });
+
+            const linkWithPhoneView = document.querySelector(
+              selectors.LINK_WITH_PHONE_VIEW
+            );
+            const linkWithPhoneViewObserver = new MutationObserver(() => {
+              const newCode = getCode();
+              if (newCode !== code) {
+                window.codeChanged(newCode);
+                code = newCode;
+              }
+            });
+            linkWithPhoneViewObserver.observe(linkWithPhoneView, {
+              subtree: true,
+              childList: true,
+            });
+          },
+          {
+            CODE_CONTAINER,
+            GENERATE_NEW_CODE_BUTTON,
+            LINK_WITH_PHONE_VIEW,
+          }
+        );
+      };
+      // end login phone
+
+      // login method
+      const { linkingMethod } = this.options;
+
+      if (linkingMethod.isQR()) {
+        await loginQR();
+      } else {
+        await loginPhone();
+      }
 
       // Wait for code scan
       try {

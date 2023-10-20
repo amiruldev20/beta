@@ -13,7 +13,7 @@ class LocalWebCache extends WebCache {
     constructor(options = {}) {
         super();
 
-        this.path = options.path || './.wwebjs_cache/';
+        this.path = options.path || './.mywa_cache/';
         this.strict = options.strict || false;
     }
 

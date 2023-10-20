@@ -1,20 +1,15 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 'use strict';
+
 exports.WhatsWebURL = 'https://web.whatsapp.com/';
 
 exports.DefaultOptions = {
-    playwright: {
+    puppeteer: {
         headless: true,
-        viewport: null,
-        bypassCSP: false
+        defaultViewport: null
+    },
+    webVersion: '2.2333.11',
+    webVersionCache: {
+        type: 'local',
     },
     authTimeoutMs: 0,
     qrMaxRetries: 0,
@@ -22,9 +17,8 @@ exports.DefaultOptions = {
     takeoverTimeoutMs: 0,
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
     ffmpegPath: 'ffmpeg',
-    clearSessions: true,
-    clearMsg: false,
-    timeClearmsg: 120
+    bypassCSP: false,
+    proxyAuthentication: undefined
 };
 
 /**
@@ -47,28 +41,30 @@ exports.Events = {
     AUTHENTICATED: 'authenticated',
     AUTHENTICATION_FAILURE: 'auth_failure',
     READY: 'ready',
+    CHAT_REMOVED: 'chat_removed',
+    CHAT_ARCHIVED: 'chat_archived',
     MESSAGE_RECEIVED: 'message',
     MESSAGE_CREATE: 'message_create',
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
     MESSAGE_ACK: 'message_ack',
+    MESSAGE_EDIT: 'message_edit',
+    UNREAD_COUNT: 'unread_count',
     MESSAGE_REACTION: 'message_reaction',
     MEDIA_UPLOADED: 'media_uploaded',
     CONTACT_CHANGED: 'contact_changed',
-    GROUP_ADMIN_CHANGED: 'group_admin_changed',
     GROUP_JOIN: 'group_join',
     GROUP_LEAVE: 'group_leave',
+    GROUP_ADMIN_CHANGED: 'group_admin_changed',
+    GROUP_MEMBERSHIP_REQUEST: 'group_membership_request',
     GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
-    CODE_RECEIVED: 'code',
     LOADING_SCREEN: 'loading_screen',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
     BATTERY_CHANGED: 'change_battery',
     INCOMING_CALL: 'call',
-    REMOTE_SESSION_SAVED: 'remote_session_saved',
-    POLL_VOTE: 'poll_vote',
-    POLL_CREATION: 'poll_creation'
+    REMOTE_SESSION_SAVED: 'remote_session_saved'
 };
 
 /**
@@ -112,8 +108,7 @@ exports.MessageTypes = {
     PROTOCOL: 'protocol',
     REACTION: 'reaction',
     TEMPLATE_BUTTON_REPLY: 'template_button_reply',
-    POLL_VOTE: 'poll_vote',
-    POLL_CREATION: 'poll_creation'
+    POLL_CREATION: 'poll_creation',
 };
 
 /**

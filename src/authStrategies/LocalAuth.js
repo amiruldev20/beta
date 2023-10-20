@@ -1,12 +1,3 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 'use strict';
 
 const path = require('path');
@@ -28,23 +19,23 @@ class LocalAuth extends BaseAuthStrategy {
             throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
         }
 
-        this.dataPath = path.resolve(dataPath || './.mywa_auth/');
+        this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
         this.clientId = clientId;
     }
 
     async beforeBrowserInitialized() {
-        const playwrightOpts = this.client.options.playwright;
+        const puppeteerOpts = this.client.options.puppeteer;
         const sessionDirName = this.clientId ? `session-${this.clientId}` : 'session';
         const dirPath = path.join(this.dataPath, sessionDirName);
 
-        if(playwrightOpts.userDataDir && playwrightOpts.userDataDir !== dirPath) {
+        if(puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
             throw new Error('LocalAuth is not compatible with a user-supplied userDataDir.');
         }
 
         fs.mkdirSync(dirPath, { recursive: true });
         
-        this.client.options.playwright = {
-            ...playwrightOpts,
+        this.client.options.puppeteer = {
+            ...puppeteerOpts,
             userDataDir: dirPath
         };
 

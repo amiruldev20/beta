@@ -1,12 +1,3 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 'use strict';
 
 const Base = require('./Base');
@@ -70,7 +61,7 @@ class ClientInfo extends Base {
      * @deprecated
      */
     async getBatteryStatus() {
-        return await this.client.mPage.evaluate(() => {
+        return await this.client.pupPage.evaluate(() => {
             const { battery, plugged } = window.Store.Conn;
             return { battery, plugged };
         });

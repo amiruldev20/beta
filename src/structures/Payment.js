@@ -1,12 +1,3 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 const Base = require('./Base');
 
 class Payment extends Base {
@@ -78,10 +69,11 @@ class Payment extends Base {
          * The note sent with the payment
          * @type {string}
          */
-        this.paymentNote = !data.paymentNoteMsg ? undefined : data.paymentNoteMsg.body ? data.paymentNoteMsg.body : undefined;
+        this.paymentNote = !data.paymentNoteMsg ? undefined : data.paymentNoteMsg.body ?  data.paymentNoteMsg.body : undefined ;
 
         return super._patch(data);
     }
+
 }
 
 module.exports = Payment;

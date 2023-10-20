@@ -1,13 +1,5 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 'use strict';
+
 const Base = require('./Base');
 
 /**
@@ -67,11 +59,11 @@ class Reaction extends Base {
          * @type {?number}
          */
         this.ack = data.ack;
-
-
+        
+        
         return super._patch(data);
     }
-
+    
 }
 
 module.exports = Reaction;

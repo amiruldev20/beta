@@ -1,12 +1,3 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 module.exports = {
     Base: require('./Base'),
     BusinessContact: require('./BusinessContact'),
@@ -28,5 +19,5 @@ module.exports = {
     List: require('./List'),
     Payment: require('./Payment'),
     Reaction: require('./Reaction'),
-    PollVote: require('./PollVote'),
+    Poll: require('./Poll'),
 };

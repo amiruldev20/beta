@@ -1,18 +1,11 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 'use strict';
+
 const fs = require('fs');
 const path = require('path');
 const mime = require('mime');
 const fetch = require('node-fetch');
 const { URL } = require('url');
+
 /**
  * Media attached to a message
  * @param {string} mimetype MIME type of the attachment
@@ -80,7 +73,7 @@ class MessageMedia {
 
         async function fetchData (url, options) {
             const reqOptions = Object.assign({ headers: { accept: 'image/* video/* text/* audio/*' } }, options);
-            const response = await axios.get(url, reqOptions);
+            const response = await fetch(url, reqOptions);
             const mime = response.headers.get('Content-Type');
             const size = response.headers.get('Content-Length');
 
@@ -102,7 +95,7 @@ class MessageMedia {
         }
 
         const res = options.client
-            ? (await options.client.mPage.evaluate(fetchData, url, options.reqOptions))
+            ? (await options.client.pupPage.evaluate(fetchData, url, options.reqOptions))
             : (await fetchData(url, options.reqOptions));
 
         const filename = options.filename ||

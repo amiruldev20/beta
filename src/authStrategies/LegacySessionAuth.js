@@ -1,12 +1,3 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 'use strict';
 
 const BaseAuthStrategy = require('./BaseAuthStrategy');
@@ -31,7 +22,7 @@ class LegacySessionAuth extends BaseAuthStrategy {
 
     async afterBrowserInitialized() {
         if(this.session) {
-            await this.client.mPage.evaluateOnNewDocument(session => {
+            await this.client.pupPage.evaluateOnNewDocument(session => {
                 if (document.referrer === 'https://whatsapp.com/') {
                     localStorage.clear();
                     localStorage.setItem('WABrowserId', session.WABrowserId);
@@ -59,13 +50,13 @@ class LegacySessionAuth extends BaseAuthStrategy {
     }
 
     async getAuthEventPayload() {
-        const isMD = await this.client.mPage.evaluate(() => {
+        const isMD = await this.client.pupPage.evaluate(() => {
             return window.Store.MDBackend;
         });
 
         if(isMD) throw new Error('Authenticating via JSON session is not supported for MultiDevice-enabled WhatsApp accounts.');
 
-        const localStorage = JSON.parse(await this.client.mPage.evaluate(() => {
+        const localStorage = JSON.parse(await this.client.pupPage.evaluate(() => {
             return JSON.stringify(window.localStorage);
         }));
 

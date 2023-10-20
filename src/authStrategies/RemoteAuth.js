@@ -1,12 +1,3 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 'use strict';
 
 /* Require Optional Dependencies */
@@ -44,22 +35,22 @@ class RemoteAuth extends BaseAuthStrategy {
         if (!backupSyncIntervalMs || backupSyncIntervalMs < 60000) {
             throw new Error('Invalid backupSyncIntervalMs. Accepts values starting from 60000ms {1 minute}.');
         }
-        if (!store) throw new Error('Remote database store is required.');
+        if(!store) throw new Error('Remote database store is required.');
 
         this.store = store;
         this.clientId = clientId;
         this.backupSyncIntervalMs = backupSyncIntervalMs;
-        this.dataPath = path.resolve(dataPath || './.mywa_auth/');
-        this.tempDir = `${this.dataPath}/mywa_temp_session_${this.clientId}`;
+        this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
+        this.tempDir = `${this.dataPath}/wwebjs_temp_session_${this.clientId}`;
         this.requiredDirs = ['Default', 'IndexedDB', 'Local Storage']; /* => Required Files & Dirs in WWebJS to restore session */
     }
 
     async beforeBrowserInitialized() {
-        const playwrightOpts = this.client.options.playwright;
+        const puppeteerOpts = this.client.options.puppeteer;
         const sessionDirName = this.clientId ? `RemoteAuth-${this.clientId}` : 'RemoteAuth';
         const dirPath = path.join(this.dataPath, sessionDirName);
 
-        if (playwrightOpts.userDataDir && playwrightOpts.userDataDir !== dirPath) {
+        if (puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
             throw new Error('RemoteAuth is not compatible with a user-supplied userDataDir.');
         }
 
@@ -68,8 +59,8 @@ class RemoteAuth extends BaseAuthStrategy {
 
         await this.extractRemoteSession();
 
-        this.client.options.playwright = {
-            ...playwrightOpts,
+        this.client.options.puppeteer = {
+            ...puppeteerOpts,
             userDataDir: dirPath
         };
     }
@@ -90,16 +81,16 @@ class RemoteAuth extends BaseAuthStrategy {
             await fs.promises.rm(this.userDataDir, {
                 recursive: true,
                 force: true
-            }).catch(() => { });
+            }).catch(() => {});
         }
         clearInterval(this.backupSync);
     }
 
     async afterAuthReady() {
-        const sessionExists = await this.store.sessionExists({ session: this.sessionName });
-        if (!sessionExists) {
+        const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        if(!sessionExists) {
             await this.delay(60000); /* Initial delay sync required for session to be stable enough to recover */
-            await this.storeRemoteSession({ emit: true });
+            await this.storeRemoteSession({emit: true});
         }
         var self = this;
         this.backupSync = setInterval(async function () {
@@ -112,28 +103,28 @@ class RemoteAuth extends BaseAuthStrategy {
         const pathExists = await this.isValidPath(this.userDataDir);
         if (pathExists) {
             await this.compressSession();
-            await this.store.save({ session: this.sessionName });
+            await this.store.save({session: this.sessionName});
             await fs.promises.unlink(`${this.sessionName}.zip`);
             await fs.promises.rm(`${this.tempDir}`, {
                 recursive: true,
                 force: true
-            }).catch(() => { });
-            if (options && options.emit) this.client.emit(Events.REMOTE_SESSION_SAVED);
+            }).catch(() => {});
+            if(options && options.emit) this.client.emit(Events.REMOTE_SESSION_SAVED);
         }
     }
 
     async extractRemoteSession() {
         const pathExists = await this.isValidPath(this.userDataDir);
         const compressedSessionPath = `${this.sessionName}.zip`;
-        const sessionExists = await this.store.sessionExists({ session: this.sessionName });
+        const sessionExists = await this.store.sessionExists({session: this.sessionName});
         if (pathExists) {
             await fs.promises.rm(this.userDataDir, {
                 recursive: true,
                 force: true
-            }).catch(() => { });
+            }).catch(() => {});
         }
         if (sessionExists) {
-            await this.store.extract({ session: this.sessionName, path: compressedSessionPath });
+            await this.store.extract({session: this.sessionName, path: compressedSessionPath});
             await this.unCompressSession(compressedSessionPath);
         } else {
             fs.mkdirSync(this.userDataDir, { recursive: true });
@@ -141,15 +132,15 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async deleteRemoteSession() {
-        const sessionExists = await this.store.sessionExists({ session: this.sessionName });
-        if (sessionExists) await this.store.delete({ session: this.sessionName });
+        const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        if (sessionExists) await this.store.delete({session: this.sessionName});
     }
 
     async compressSession() {
         const archive = archiver('zip');
         const stream = fs.createWriteStream(`${this.sessionName}.zip`);
 
-        await fs.copy(this.userDataDir, this.tempDir).catch(() => { });
+        await fs.copy(this.userDataDir, this.tempDir).catch(() => {});
         await this.deleteMetadata();
         return new Promise((resolve, reject) => {
             archive
@@ -182,14 +173,14 @@ class RemoteAuth extends BaseAuthStrategy {
                 if (!this.requiredDirs.includes(element)) {
                     const dirElement = path.join(dir, element);
                     const stats = await fs.promises.lstat(dirElement);
-
+    
                     if (stats.isDirectory()) {
                         await fs.promises.rm(dirElement, {
                             recursive: true,
                             force: true
-                        }).catch(() => { });
+                        }).catch(() => {});
                     } else {
-                        await fs.promises.unlink(dirElement).catch(() => { });
+                        await fs.promises.unlink(dirElement).catch(() => {});
                     }
                 }
             }

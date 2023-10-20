@@ -1,12 +1,3 @@
-/*
- * MywaJS 2023
- * re-developed wwebjs
- * using with playwright & wajs
- * contact:
- * wa: 085157489446
- * ig: amirul.dev
- */
-
 'use strict';
 
 const Base = require('./Base');
@@ -61,7 +52,7 @@ class Product extends Base {
 
     async getData() {
         if (this.data === null) {
-            let result = await this.client.mPage.evaluate((productId) => {
+            let result = await this.client.pupPage.evaluate((productId) => {
                 return window.WWebJS.getProductMetadata(productId);
             }, this.id);
             if (!result) {

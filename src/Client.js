@@ -82,7 +82,7 @@ class Client extends EventEmitter {
       if (Object.prototype.hasOwnProperty.call(this.options, "session")) {
         process.emitWarning(
           "options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. " +
-            "Use the LocalAuth authStrategy, don't pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).",
+          "Use the LocalAuth authStrategy, don't pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).",
           "DeprecationWarning"
         );
 
@@ -167,6 +167,16 @@ class Client extends EventEmitter {
     await page.waitForFunction(() => window.WPP?.isReady, {
       timeout: 60000,
     });
+
+    const inject = async () => {
+      await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
+        // These error, not as a result of injection directly, but since we use moduleRaid. nothing to do about this but do it again till it works
+        if (error.message.includes('EmojiUtil') || error.message.includes('Prism') || error.message.includes('createOrUpdateReactions')) {
+          await inject();
+        }
+      });
+    };
+    await inject();
 
     await page.evaluate(`function getElementByXpath(path) {
             return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -509,18 +519,18 @@ class Client extends EventEmitter {
         return operator === ">"
           ? lOperand > rOperand
           : operator === ">="
-          ? lOperand >= rOperand
-          : operator === "<"
-          ? lOperand < rOperand
-          : operator === "<="
-          ? lOperand <= rOperand
-          : operator === "="
-          ? lOperand === rOperand
-          : false;
+            ? lOperand >= rOperand
+            : operator === "<"
+              ? lOperand < rOperand
+              : operator === "<="
+                ? lOperand <= rOperand
+                : operator === "="
+                  ? lOperand === rOperand
+                  : false;
       };
     });
 
-    await page.evaluate(ExposeStore, moduleRaid.toString());
+    //await page.evaluate(ExposeStore, moduleRaid.toString());
     const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
     /**

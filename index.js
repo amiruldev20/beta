@@ -24,6 +24,7 @@ module.exports = {
     Buttons: require('./src/structures/Buttons'),
     
     // Auth Strategies
+    LinkingMethod: require('./src/authStrategies/LinkingMethod'),
     NoAuth: require('./src/authStrategies/NoAuth'),
     LocalAuth: require('./src/authStrategies/LocalAuth'),
     RemoteAuth: require('./src/authStrategies/RemoteAuth'),

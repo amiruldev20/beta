@@ -30,6 +30,7 @@ const {
   List,
   Reaction,
 } = require("./structures");
+const LinkingMethod = require('./authStrategies/LinkingMethod');
 const LegacySessionAuth = require("./authStrategies/LegacySessionAuth");
 const NoAuth = require("./authStrategies/NoAuth");
 

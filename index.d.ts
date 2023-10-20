@@ -333,6 +333,13 @@ declare namespace WAWebJS {
             qr: string
         ) => void): this
 
+         /** Emitted when the linkingMethod is phone and code is received */
+         on(event: 'code', listener: (
+            /** code string
+             *  @example ```Q1EW-R2ET``` */
+            code: string
+        ) => void): this
+
         /** Emitted when a call is received */
         on(event: 'call', listener: (
             /** The call that started */
@@ -402,6 +409,10 @@ declare namespace WAWebJS {
         /** How many times should the qrcode be refreshed before giving up
          * @default 0 (disabled) */
         qrMaxRetries?: number,
+        /**
+         * Configures how the client will be linked to a new session. Defaults to using a QR code.
+        */
+        linkingMethod: LinkingMethod
         /** 
          * @deprecated This option should be set directly on the LegacySessionAuth
          */
@@ -1647,6 +1658,32 @@ declare namespace WAWebJS {
         aggregateEmoji: string,
         hasReactionByMe: boolean,
         senders: Array<Reaction>
+    }
+
+    interface LinkWithQR {
+        qr: {
+            maxRetries: number;
+        },
+        phone?: never;
+    }
+
+    interface LinkWithPhoneNumber {
+        qr?: never;
+        phone: {
+            number: string;
+        }
+    }
+
+    export class LinkingMethod {
+        qr: {
+            maxRetries: number
+        }
+        phone: {
+            number: string
+        }
+        isQR: () => boolean
+        isPhone: () => boolean
+        constructor({ qr, phone }: LinkWithQR | LinkWithPhoneNumber)
     }
 }
 

@@ -1,7 +1,7 @@
 {
-  "name": "whatsapp-web.js",
-  "version": "1.22.2-alpha.4",
-  "description": "Library for interacting with the WhatsApp Web API ",
+  "name": "mywajs",
+  "version": "2.0.9",
+  "description": "redeveloped wwebjs with wa-js using playwright",
   "main": "./index.js",
   "typings": "./index.d.ts",
   "scripts": {
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pedroslopez/whatsapp-web.js.git"
+    "url": "git+https://github.com/amiruldev20/mywajs.git"
   },
   "keywords": [
     "whatsapp",
@@ -20,22 +20,28 @@
     "api",
     "bot",
     "client",
-    "node"
+    "node",
+    "baileys",
+    "amiruldev",
+    "mywajs"
   ],
-  "author": "Pedro Lopez",
+  "author": "Amirul Dev",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/pedroslopez/whatsapp-web.js/issues"
+    "url": "https://github.com/amiruldev20/mywajs/issues"
   },
-  "homepage": "https://wwebjs.dev/",
+  "homepage": "https://github.com/amiruldev20/",
   "dependencies": {
     "@pedroslopez/moduleraid": "^5.0.2",
+    "@amiruldev/wajs": "github:amiruldev20/wajs",
     "fluent-ffmpeg": "^2.1.2",
     "jsqr": "^1.3.1",
     "mime": "^3.0.0",
     "node-fetch": "^2.6.5",
     "node-webpmux": "^3.1.0",
-    "puppeteer": "^13.0.0"
+    "playwright-chromium": "latest",
+    "qrcode-terminal": "0.12.0",
+    "sharp": "^0.32.4"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.12",

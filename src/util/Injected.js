@@ -216,7 +216,7 @@ exports.ExposeStore = (moduleRaidStr) => {
 
 exports.LoadUtils = () => {
   window.WWebJS = {
-    ...WPP,
+    ...WPP
   };
 
   window.WWebJS.sendSeen = async (chatId) => {

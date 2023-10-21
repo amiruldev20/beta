@@ -57,9 +57,9 @@ exports.ExposeStore = (moduleRaidStr) => {
   )[0].default;
   window.Store.UserConstructor = window.mR.findModule((module) =>
     module.default &&
-    module.default.prototype &&
-    module.default.prototype.isServer &&
-    module.default.prototype.isUser
+      module.default.prototype &&
+      module.default.prototype.isServer &&
+      module.default.prototype.isUser
       ? module.default
       : null
   )[0].default;
@@ -132,8 +132,8 @@ exports.ExposeStore = (moduleRaidStr) => {
       return target
         ? Promise.resolve(target)
         : Promise.resolve({
-            id: e,
-          });
+          id: e,
+        });
     };
   }
 
@@ -234,10 +234,10 @@ exports.LoadUtils = () => {
       attOptions = options.sendMediaAsSticker
         ? await window.WWebJS.processStickerData(options.attachment)
         : await window.WWebJS.processMediaData(options.attachment, {
-            forceVoice: options.sendAudioAsVoice,
-            forceDocument: options.sendMediaAsDocument,
-            forceGif: options.sendVideoAsGif,
-          });
+          forceVoice: options.sendAudioAsVoice,
+          forceDocument: options.sendMediaAsDocument,
+          forceGif: options.sendVideoAsGif,
+        });
 
       if (options.caption) {
         attOptions.caption = options.caption;
@@ -1071,33 +1071,33 @@ exports.LoadUtils = () => {
   ) => {
     const participantLidArgs = groupMetadata?.isLidAddressingMode
       ? {
-          phoneNumber: participantWid,
-          lid: window.Store.LidUtils.getCurrentLid(participantWid),
-        }
+        phoneNumber: participantWid,
+        lid: window.Store.LidUtils.getCurrentLid(participantWid),
+      }
       : { phoneNumber: participantWid };
 
     const iqTo = window.Store.WidToJid.widToGroupJid(groupWid);
 
     const participantArgs = participantLidArgs.lid
       ? [
-          {
-            participantJid: window.Store.WidToJid.widToUserJid(
-              participantLidArgs.lid
-            ),
-            phoneNumberMixinArgs: {
-              anyPhoneNumber: window.Store.WidToJid.widToUserJid(
-                participantLidArgs.phoneNumber
-              ),
-            },
-          },
-        ]
-      : [
-          {
-            participantJid: window.Store.WidToJid.widToUserJid(
+        {
+          participantJid: window.Store.WidToJid.widToUserJid(
+            participantLidArgs.lid
+          ),
+          phoneNumberMixinArgs: {
+            anyPhoneNumber: window.Store.WidToJid.widToUserJid(
               participantLidArgs.phoneNumber
             ),
           },
-        ];
+        },
+      ]
+      : [
+        {
+          participantJid: window.Store.WidToJid.widToUserJid(
+            participantLidArgs.phoneNumber
+          ),
+        },
+      ];
 
     let rpcResult, resultArgs;
     const isOldImpl = window.compareWwebVersions(
@@ -1120,8 +1120,8 @@ exports.LoadUtils = () => {
       resultArgs = isOldImpl
         ? rpcResult.value.addParticipant[0].addParticipantsParticipantMixins
         : rpcResult.value.addParticipant[0]
-            .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
-            .value.addParticipantsParticipantMixins;
+          .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
+          .value.addParticipantsParticipantMixins;
     } catch (err) {
       data.code = 400;
       return data;
@@ -1199,9 +1199,8 @@ exports.LoadUtils = () => {
     };
 
     const membReqResCodes = {
-      default: `An unknown error occupied while ${
-        toApprove ? "approving" : "rejecting"
-      } the participant membership request`,
+      default: `An unknown error occupied while ${toApprove ? "approving" : "rejecting"
+        } the participant membership request`,
       400: "ParticipantNotFoundError",
       401: "ParticipantNotAuthorizedError",
       403: "ParticipantForbiddenError",
@@ -1230,25 +1229,24 @@ exports.LoadUtils = () => {
             const [_] = value.participant.map((p) => {
               const error = toApprove
                 ? value.participant[0]
-                    .membershipRequestsActionAcceptParticipantMixins?.value
-                    .error
+                  .membershipRequestsActionAcceptParticipantMixins?.value
+                  .error
                 : value.participant[0]
-                    .membershipRequestsActionRejectParticipantMixins?.value
-                    .error;
+                  .membershipRequestsActionRejectParticipantMixins?.value
+                  .error;
               return {
                 requesterId: window.Store.WidFactory.createWid(p.jid)
                   ._serialized,
                 ...(error
                   ? {
-                      error: +error,
-                      message:
-                        membReqResCodes[error] || membReqResCodes.default,
-                    }
+                    error: +error,
+                    message:
+                      membReqResCodes[error] || membReqResCodes.default,
+                  }
                   : {
-                      message: `${
-                        toApprove ? "Approved" : "Rejected"
+                    message: `${toApprove ? "Approved" : "Rejected"
                       } successfully`,
-                    }),
+                  }),
               };
             });
             _ && result.push(_);
@@ -1274,4 +1272,41 @@ exports.LoadUtils = () => {
       return [];
     }
   };
+
+  window.extra = {
+    group: {
+      memberRequest: async (jid) => {
+        return WPP.group.getMembershipRequests(jid);
+      },
+      approve: async (jid, participant) => {
+        return WPP.group.approve(jid, participant);
+      },
+      reject: async (jid, memb) => {
+        return WPP.group.reject(jid, memb);
+      },
+    },
+    joinBeta: async (act) => {
+      return WPP.conn.joinWebBeta(act);
+    },
+    theme: window.mR.findModule((module) =>
+      module.setTheme && module.getTheme ? module : null
+    ),
+    status: {
+      text: async (capt, opt) => {
+        return WPP.status.sendTextStatus(capt, opt);
+      },
+      // masih belum dapat bekerja
+      image: async (base64) => {
+        return WPP.status.sendImageStatus(base64);
+      },
+      video: async (buffer) => {
+        return "soon";
+      },
+      vn: async (buffer) => {
+        return "soon";
+      },
+    },
+  };
+
+  //end
 };

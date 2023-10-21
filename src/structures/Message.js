@@ -399,17 +399,17 @@ class Message extends Base {
    * @returns {Promise<Message>}
    */
   async reply(content, chatId, options = {}) {
-    if (!chatId) {
-      chatId = this._getChatId();
+        if (!chatId) {
+            chatId = this._getChatId();
+        }
+
+        options = {
+            ...options,
+            quoted: this.id._serialized
+        };
+
+        return this.client.sendMessage(chatId, content, options);
     }
-
-    options = {
-      ...options,
-      quotedMessageId: this.id._serialized,
-    };
-
-    return this.client.sendMessage(chatId, content, options);
-  }
 
   /**
    * React to this message with an emoji

@@ -2724,11 +2724,12 @@ class Client extends EventEmitter {
   }
   
   async scheduleCall(jid, title, type, time){
-  return this.mPage.evaluate({jid, title, type, time}){
+  return this.mPage.evaluate(({jid, title, type, time}) => {
     return WPP.chat.sendScheduledCallMessage(jid, {
  title: title,
  callType: type || 'audio',
  scheduledTimestampMs: time || 1696084222000
+})
 }, { jid, title, type, time })
 }
 

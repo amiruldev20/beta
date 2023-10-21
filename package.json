@@ -42,7 +42,7 @@
     "node-webpmux": "^3.1.0",
     "playwright-chromium": "latest",
     "qrcode-terminal": "0.12.0",
-    "sharp": "^0.32.4"
+    "sharp": "latest"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.12",

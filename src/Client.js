@@ -2722,6 +2722,16 @@ class Client extends EventEmitter {
   async parseMention(text) {
     return [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(v => v[1] + '@c.us') || []
   }
+  
+  async scheduleCall(jid, title, type, time){
+  return this.mPage.evaluate({jid, title, type, time}){
+    return WPP.chat.sendScheduledCallMessage(jid, {
+ title: title,
+ callType: type || 'audio',
+ scheduledTimestampMs: time || 1696084222000
+}, { jid, title, type, time })
+}
+
   // end
 }
 

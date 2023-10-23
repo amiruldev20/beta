@@ -137,14 +137,13 @@ class Client extends EventEmitter {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
 
-            browser = await playwright.chromium.launchPersistentContext(
-                ".mywa_auth",
-                {
-                    ...playwrightOpts,
-                    args: browserArgs,
-                    timeout: 0,
-                }
-            );
+            const userDataDir = playwrightOpts.userDataDir || '.mywa_auth';
+
+            const browser = await playwright.chromium.launchPersistentContext(userDataDir, {
+                ...playwrightOpts,
+                args: browserArgs,
+                timeout: 0,
+            });
             page = (await browser.pages())[0];
         }
 
@@ -175,7 +174,7 @@ class Client extends EventEmitter {
             path: require.resolve("@amiruldev/wajs"),
         });
 
-        await page.waitForFunction(() => window.WPP ?.isReady, {
+        await page.waitForFunction(() => window.WPP?.isReady, {
             timeout: 60000,
         });
         /*
@@ -222,9 +221,9 @@ class Client extends EventEmitter {
                 subtree: true
             });
         }, {
-                PROGRESS: 'div.progress > progress',
-                PROGRESS_MESSAGE: 'div.secondary'
-            });
+            PROGRESS: 'div.progress > progress',
+            PROGRESS_MESSAGE: 'div.secondary'
+        });
 
         const INTRO_IMG_SELECTOR = '[data-icon=\'search\']';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
@@ -1124,14 +1123,14 @@ class Client extends EventEmitter {
             sendMediaAsSticker: options.asSticker,
             sendMediaAsDocument: options.asDocument,
             caption: options.caption,
-            quotedMessageId: options.quoted ?.id ?
+            quotedMessageId: options.quoted?.id ?
                 options.quoted._serialized || options.quoted.id._serialized :
                 options.quoted,
             parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: Array.isArray(options.mentions) ?
                 options.mentions.map((contact) =>
-                    contact ?.id ? contact ?.id ?._serialized : contact
-        ) :
+                    contact?.id ? contact?.id?._serialized : contact
+                ) :
                 [],
             extraOptions: options.extra,
         };
@@ -1154,7 +1153,7 @@ class Client extends EventEmitter {
             } else {
                 internalOptions.attachment = {
                     mimetype: options.mimetype ? options.mimetype : media.mime,
-                    data: media ?.data ?.toString("base64") || Util.bufferToBase64(media.data),
+                    data: media?.data?.toString("base64") || Util.bufferToBase64(media.data),
                     filename: options.fileName ?
                         options.fileName :
                         Util.getRandom(media.ext),
@@ -1200,35 +1199,35 @@ class Client extends EventEmitter {
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
             internalOptions.attachment = await Util.formatToWebpSticker(
                 internalOptions.attachment, {
-                    packId: options ?.packId ? options.packId : global ?.Exif ?.packId,
-                    packName: options ?.packName ?
-                        options.packName :
-                        global ?.Exif ?.packName,
-                    packPublish: options ?.packPublish ?
-                        options.packPublish :
-                        global ?.Exif ?.packPublish,
-                    packEmail: options ?.packEmail ?
-                        options.packEmail :
-                        global ?.Exif ?.packEmail,
-                    packWebsite: options ?.packWebsite ?
-                        options.packWebsite :
-                        global ?.Exif ?.packWebsite,
-                    androidApp: options ?.androidApp ?
-                        options.androidApp :
-                        global ?.Exif ?.androidApp,
-                    iOSApp: options ?.iOSApp ? options.iOSApp : global ?.Exif ?.iOSApp,
-                    categories: options ?.categories ?
-                        options.categories :
-                        global ?.Exif ?.categories,
-                    isAvatar: options ?.isAvatar ?
-                        options.isAvatar :
-                        global ?.Exif ?.isAvatar,
-                },
+                packId: options?.packId ? options.packId : global?.Exif?.packId,
+                packName: options?.packName ?
+                    options.packName :
+                    global?.Exif?.packName,
+                packPublish: options?.packPublish ?
+                    options.packPublish :
+                    global?.Exif?.packPublish,
+                packEmail: options?.packEmail ?
+                    options.packEmail :
+                    global?.Exif?.packEmail,
+                packWebsite: options?.packWebsite ?
+                    options.packWebsite :
+                    global?.Exif?.packWebsite,
+                androidApp: options?.androidApp ?
+                    options.androidApp :
+                    global?.Exif?.androidApp,
+                iOSApp: options?.iOSApp ? options.iOSApp : global?.Exif?.iOSApp,
+                categories: options?.categories ?
+                    options.categories :
+                    global?.Exif?.categories,
+                isAvatar: options?.isAvatar ?
+                    options.isAvatar :
+                    global?.Exif?.isAvatar,
+            },
                 this.mPage
             );
         }
 
-        if (internalOptions.attachment ?.filesize > 42428800) {
+        if (internalOptions.attachment?.filesize > 42428800) {
             let startDivision = 2;
             let middle = internalOptions.attachment.data.length / startDivision;
             let currentIndex = 0;
@@ -1257,10 +1256,10 @@ class Client extends EventEmitter {
                         window[`mediaChunk_${randomId}`] = chunk;
                     }
                 }, {
-                        chatId,
-                        chunk: internalOptions.attachment.data.substring(currentIndex, currentIndex + chunkPiece),
-                        randomId
-                    });
+                    chatId,
+                    chunk: internalOptions.attachment.data.substring(currentIndex, currentIndex + chunkPiece),
+                    randomId
+                });
                 currentIndex += chunkPiece;
 
             }
@@ -1282,7 +1281,7 @@ class Client extends EventEmitter {
                     window.WWebJS.sendSeen(chatId);
                 }
 
-                if (options ?.attachment ?.data ?.startsWith('mediaChunk')) {
+                if (options?.attachment?.data?.startsWith('mediaChunk')) {
                     options.attachment.data = window[options.attachment.data];
                     delete window[options.attachment.data];
                 }
@@ -1296,11 +1295,11 @@ class Client extends EventEmitter {
                 );
                 return msg.serialize();
             }, {
-                chatId,
-                message: content,
-                options: internalOptions,
-                sendSeen,
-            }
+            chatId,
+            message: content,
+            options: internalOptions,
+            sendSeen,
+        }
         );
 
         if (newMessage) return new Message(this, newMessage);
@@ -1795,7 +1794,7 @@ class Client extends EventEmitter {
 
                 for (const participant of participants) {
                     const pWid = window.Store.WidFactory.createWid(participant);
-                    if ((await window.Store.QueryExist(pWid)) ?.wid)
+                    if ((await window.Store.QueryExist(pWid))?.wid)
                         participantWids.push(pWid);
                     else failedParticipants.push(participant);
                 }
@@ -2143,17 +2142,17 @@ class Client extends EventEmitter {
             }) => {
                 try {
                     const decryptedMedia = await (
-                        window.Store.DownloadManager ?.downloadAndMaybeDecrypt ||
-                            window.Store.DownloadManager ?.downloadAndDecrypt
-          )({
-                            directPath,
-                            encFilehash,
-                            filehash,
-                            mediaKey,
-                            mediaKeyTimestamp,
-                            type: type === "chat" ? mimetype.split("/")[0] || type : type,
-                            signal: new AbortController().signal,
-                        });
+                        window.Store.DownloadManager?.downloadAndMaybeDecrypt ||
+                        window.Store.DownloadManager?.downloadAndDecrypt
+                    )({
+                        directPath,
+                        encFilehash,
+                        filehash,
+                        mediaKey,
+                        mediaKeyTimestamp,
+                        type: type === "chat" ? mimetype.split("/")[0] || type : type,
+                        signal: new AbortController().signal,
+                    });
 
                     const data = await window.WWebJS.arrayBufferToBase64(decryptedMedia);
 
@@ -2173,21 +2172,21 @@ class Client extends EventEmitter {
                     };
                 }
             }, {
-                directPath: msg.directPath,
-                encFilehash: msg.encFilehash,
-                filehash: msg.filehash,
-                mediaKey: msg.mediaKey,
-                type: msg.type,
-                mediaKeyTimestamp: msg.mediaKeyTimestamp,
-                mimetype: msg.mime,
-                filename: msg.filename,
-                size: msg.fileSize,
-                _serialized: msg.id._serialized,
-            }
+            directPath: msg.directPath,
+            encFilehash: msg.encFilehash,
+            filehash: msg.filehash,
+            mediaKey: msg.mediaKey,
+            type: msg.type,
+            mediaKeyTimestamp: msg.mediaKeyTimestamp,
+            mimetype: msg.mime,
+            filename: msg.filename,
+            size: msg.fileSize,
+            _serialized: msg.id._serialized,
+        }
         );
 
         if (!result) return undefined;
-        return Util.base64ToBuffer(result ?.data);
+        return Util.base64ToBuffer(result?.data);
     }
 
     /**
@@ -2243,13 +2242,13 @@ class Client extends EventEmitter {
             let media = await Util.getFile(content)
             if (type === 'long') {
                 data = {
-                    img: await (await Util.resizeImage(media ?.data, 720)).toString('base64'),
-                    preview: await (await Util.resizeImage(media ?.data, 120)).toString('base64')
+                    img: await (await Util.resizeImage(media?.data, 720)).toString('base64'),
+                    preview: await (await Util.resizeImage(media?.data, 120)).toString('base64')
                 }
             } else if (type === 'normal') {
                 data = {
-                    img: await (await Util.resizeImage(media ?.data, 540)).toString('base64'),
-                    preview: await (await Util.resizeImage(media ?.data, 86)).toString('base64')
+                    img: await (await Util.resizeImage(media?.data, 540)).toString('base64'),
+                    preview: await (await Util.resizeImage(media?.data, 86)).toString('base64')
                 }
             }
         }
@@ -2310,7 +2309,7 @@ class Client extends EventEmitter {
     async getTheme() {
         const theme = await this.mPage.evaluate(async () => {
             if (window.localStorage) {
-                return await JSON.parse(JSON.stringify(window.localStorage)) ?.theme;
+                return await JSON.parse(JSON.stringify(window.localStorage))?.theme;
             } else {
                 return await window.Store.Theme.getTheme();
             }
@@ -2358,9 +2357,9 @@ class Client extends EventEmitter {
                     }) => {
                         return window.WWebJS.call.offer(id, options);
                     }, {
-                        id,
-                        options,
-                    }
+                    id,
+                    options,
+                }
                 );
             })
         );
@@ -2419,10 +2418,10 @@ class Client extends EventEmitter {
                         font: fonts,
                     });
                 }, {
-                    text,
-                    bg,
-                    fonts,
-                }
+                text,
+                bg,
+                fonts,
+            }
             );
             return "Successfully sent status text to WhatsApp";
         } catch (error) {
@@ -2446,8 +2445,8 @@ class Client extends EventEmitter {
         var view = nameOrOptions.view ? true : false;
         var ptt = nameOrOptions.ptt ? true : false;
         let options = {
-            type: nameOrOptions ?.type ? nameOrOptions.type : "auto-detect",
-            filename: nameOrOptions ?.filename ? nameOrOptions.filename : "",
+            type: nameOrOptions?.type ? nameOrOptions.type : "auto-detect",
+            filename: nameOrOptions?.filename ? nameOrOptions.filename : "",
             mimetype: fileContent.mime,
             isViewOnce: view,
             isPtt: ptt,
@@ -2457,7 +2456,7 @@ class Client extends EventEmitter {
             await fileContent
         ).data.toString("base64")}`;
 
-        if (!!nameOrOptions ?.quoted) {
+        if (!!nameOrOptions?.quoted) {
             options.quotedMsg =
                 typeof nameOrOptions.quoted === "object" ?
                     nameOrOptions.quoted.id._serialized :
@@ -2466,11 +2465,11 @@ class Client extends EventEmitter {
             delete nameOrOptions.quoted;
         }
 
-        if (nameOrOptions ?.mentions) {
+        if (nameOrOptions?.mentions) {
             options.mentionedJidList = Array.isArray(options.mentions) ?
                 options.mentions.map((contact) =>
-                    contact ?.id ? contact ?.id ?._serialized : contact
-        ) : [];
+                    contact?.id ? contact?.id?._serialized : contact
+                ) : [];
 
             delete nameOrOptions.mentions;
         }
@@ -2488,10 +2487,10 @@ class Client extends EventEmitter {
             }) => {
                 return WPP.chat.sendFileMessage(chatId, base64, options);
             }, {
-                chatId,
-                base64,
-                options
-            }
+            chatId,
+            base64,
+            options
+        }
         );
     }
 
@@ -2520,15 +2519,15 @@ class Client extends EventEmitter {
                 const wid = window.Store.WidFactory.createWid(chatId);
                 const statusStore = window.Store.StatusV3.get(wid);
 
-                const status = statusStore ?.msgs.get(statusId);
-                await statusStore ?.sendReadStatus(
+                const status = statusStore?.msgs.get(statusId);
+                await statusStore?.sendReadStatus(
                     status,
-                    status ?.mediaKeyTimestamp || status ?.t
-        );
+                    status?.mediaKeyTimestamp || status?.t
+                );
             }, {
-                chatId,
-                statusId,
-            }
+            chatId,
+            statusId,
+        }
         );
     }
 
@@ -2716,9 +2715,9 @@ class Client extends EventEmitter {
         }) => {
             return WPP.chat.forwardMessage(chatId, msgId)
         }, {
-                msgId,
-                chatId
-            })
+            msgId,
+            chatId
+        })
     }
 
     async createChannel(name, desc, pict) {

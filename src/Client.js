@@ -178,15 +178,16 @@ class Client extends EventEmitter {
         await page.waitForFunction(() => window.WPP ?.isReady, {
             timeout: 60000,
         });
-
-        const inject = async () => {
-            await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
-                if (error.message.includes('call')) {
-                    await inject();
-                }
-            });
-        };
-        await inject(); 
+        /*
+                const inject = async () => {
+                    await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
+                        if (error.message.includes('call')) {
+                            await inject();
+                        }
+                    });
+                };
+                await inject();
+                */
         // new
         const getElementByXpath = (path) => {
             return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -225,8 +226,8 @@ class Client extends EventEmitter {
                 PROGRESS_MESSAGE: 'div.secondary'
             });
 
-        const INTRO_IMG_SELECTOR = 'span[data-icon="intro-md-beta-logo-light"]';
-        const INTRO_QRCODE_SELECTOR = "div[data-ref] canvas";
+        const INTRO_IMG_SELECTOR = '[data-icon=\'search\']';
+        const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
         // Checks which selector appears first
         const needAuthentication = await Promise.race([
@@ -538,7 +539,15 @@ class Client extends EventEmitter {
             };
         });
 
-       // await page.evaluate(ExposeStore, moduleRaid.toString());
+        // await page.evaluate(ExposeStore, moduleRaid.toString());
+        const inject = async () => {
+            await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
+                if (error.message.includes('call')) {
+                    await inject();
+                }
+            });
+        };
+        await inject();
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
         /**
@@ -997,8 +1006,7 @@ class Client extends EventEmitter {
     }
 
     async initWebVersionCache() {
-        const { type: webCacheType, ...webCacheOptions } =
-            this.options.webVersionCache;
+        const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
         const webCache = WebCacheFactory.createWebCache(
             webCacheType,
             webCacheOptions
@@ -1008,17 +1016,12 @@ class Client extends EventEmitter {
         const versionContent = await webCache.resolve(requestedVersion);
 
         if (versionContent) {
-            await this.mPage.setRequestInterception(true);
-            this.mPage.on("request", async (req) => {
-                if (req.url() === WhatsWebURL) {
-                    req.respond({
-                        status: 200,
-                        contentType: "text/html",
-                        body: versionContent,
-                    });
-                } else {
-                    req.continue();
-                }
+            await this.mPage.route(WhatsWebURL, (route) => {
+                route.fulfill({
+                    status: 200,
+                    contentType: "text/html",
+                    body: versionContent,
+                });
             });
         } else {
             this.mPage.on("response", async (res) => {
@@ -1027,6 +1030,7 @@ class Client extends EventEmitter {
                 }
             });
         }
+
     }
 
     /**

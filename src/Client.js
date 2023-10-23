@@ -163,7 +163,7 @@ class Client extends EventEmitter {
         this.mPage = page;
 
         await this.authStrategy.afterBrowserInitialized();
-        //await this.initWebVersionCache();
+        await this.initWebVersionCache();
 
         await page.goto(WhatsWebURL, {
             waitUntil: "load",

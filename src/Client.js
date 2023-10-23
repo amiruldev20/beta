@@ -179,6 +179,14 @@ class Client extends EventEmitter {
             timeout: 60000,
         });
 
+        const inject = async () => {
+            await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
+                if (error.message.includes('call')) {
+                    await inject();
+                }
+            });
+        };
+        await inject(); 
         // new
         const getElementByXpath = (path) => {
             return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -531,14 +539,6 @@ class Client extends EventEmitter {
         });
 
        // await page.evaluate(ExposeStore, moduleRaid.toString());
-        const inject = async () => {
-            await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
-                if (error.message.includes('call')) {
-                    await inject();
-                }
-            });
-        };
-        await inject(); 
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
         /**

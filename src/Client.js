@@ -163,7 +163,7 @@ class Client extends EventEmitter {
         this.mPage = page;
 
         await this.authStrategy.afterBrowserInitialized();
-        await this.initWebVersionCache();
+        //await this.initWebVersionCache();
 
         await page.goto(WhatsWebURL, {
             waitUntil: "load",
@@ -530,15 +530,15 @@ class Client extends EventEmitter {
             };
         });
 
-        await page.evaluate(ExposeStore, moduleRaid.toString());
-        /*const inject = async () => {
+       // await page.evaluate(ExposeStore, moduleRaid.toString());
+        const inject = async () => {
             await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
                 if (error.message.includes('call')) {
                     await inject();
                 }
             });
         };
-        await inject(); */
+        await inject(); 
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
         /**
